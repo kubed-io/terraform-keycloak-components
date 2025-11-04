@@ -33,6 +33,15 @@ spec:
               module: github.com/kubed-io/terraform-keycloak-components//modules/ldap_federation?ref=main
               # filled out by the patch-and-transform function 
               varmap: {}
+              env: 
+              - name: TF_VAR_bind_dn
+                secretKeyRef:
+                  name: "?"
+                  key: dn
+              - name: TF_VAR_bind_credential
+                secretKeyRef:
+                  name: "?"
+                  key: password
         patches: 
 
         # name after the instance name
@@ -109,4 +118,21 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.mappers
           toFieldPath: spec.forProvider.varmap.mappers
-        
+
+        # this one is special
+        # we need to get the secret ref name and key from the composite resource
+        # then make the same refrence in the env of the workspace
+        ## first the bind dn
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.bindSecretRef.name
+          toFieldPath: spec.forProvider.env[0].secretKeyRef.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.bindSecretRef.namespace
+          toFieldPath: spec.forProvider.env[0].secretKeyRef.namespace
+        ## then the bind credential
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.bindSecretRef.name
+          toFieldPath: spec.forProvider.env[1].secretKeyRef.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.bindSecretRef.namespace
+          toFieldPath: spec.forProvider.env[1].secretKeyRef.namespace
