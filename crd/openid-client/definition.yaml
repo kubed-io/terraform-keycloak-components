@@ -20,7 +20,6 @@ spec:
             type: object
             required:
             - realm
-            - id
             - accessType
             properties:
               name:
