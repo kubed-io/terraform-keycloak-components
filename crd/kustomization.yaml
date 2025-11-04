@@ -6,3 +6,4 @@ namespace: auth
 resources:
 - realm
 - ldap_federation
+- openid-client

@@ -1,0 +1,55 @@
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClient
+metadata:
+  name: example-web-app
+spec:
+  # Required fields
+  realm: master
+  id: example-web-app
+  accessType: CONFIDENTIAL
+  
+  # Optional basic settings
+  enabled: true
+  description: "Example web application client"
+  
+  # Access settings - URLs and redirects
+  accessSettings:
+    rootUrl: "https://example.com"
+    redirectUris:
+      - "https://example.com/oauth/callback"
+      - "http://localhost:3000/*"
+    webOrigins:
+      - "+"
+  
+  # Capabilities - Enable OAuth2 flows
+  capabilities:
+    standardFlowEnabled: true
+    directAccessGrantsEnabled: true
+    pkceCodeChallengeMethod: S256
+  
+  # Client scopes
+  scopes:
+    default:
+      - email
+      - profile
+    optional:
+      - offline_access
+  
+  # Protocol mappers
+  protocolMappers:
+    - name: email
+      type: userProperty
+      userProperty:
+        name: email
+        claimName: email
+        addToIdToken: true
+        addToAccessToken: true
+        addToUserinfo: true
+    
+    - name: groups
+      type: groupMembership
+      groupMembership:
+        claimName: groups
+        fullPath: false
+        addToIdToken: true
+        addToAccessToken: true

@@ -1,0 +1,167 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: openidclients.keycloak.kubed.io
+spec:
+  writeConnectionSecretsToNamespace: crossplane
+  compositeTypeRef:
+    apiVersion: keycloak.kubed.io/v1alpha1
+    kind: OpenidClient
+  mode: Pipeline
+  pipeline:
+  - step: module
+    functionRef:
+      name: patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources: 
+      - name: workspace
+        base: 
+          apiVersion: opentofu.upbound.io/v1beta1
+          kind: Workspace
+          metadata:
+            name: openid-client
+            annotations:
+              kubernetes.io/description: |
+                Creates an OpenID Connect client in Keycloak.
+          spec:
+            providerConfigRef:
+              name: keycloak
+            forProvider:
+              source: Remote
+              module: github.com/kubed-io/terraform-keycloak-components//modules/openid-client?ref=main
+              # filled out by the patch-and-transform function 
+              varmap: {}
+            writeConnectionSecretToRef:
+              namespace: auth
+              name: client-creds
+        patches: 
+
+        # name after the instance name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s.openidclients.keycloak"
+
+        # now set the actual workspace name as the external name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-openidclient"
+
+        # map id
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.varmap.id
+
+        # map name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.name
+          toFieldPath: spec.forProvider.varmap.name
+
+        # map realm
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.realm
+          toFieldPath: spec.forProvider.varmap.realm
+
+        # map enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.enabled
+          toFieldPath: spec.forProvider.varmap.enabled
+
+        # map description
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.description
+          toFieldPath: spec.forProvider.varmap.description
+
+        # map alwaysDisplayInConsole
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.alwaysDisplayInConsole
+          toFieldPath: spec.forProvider.varmap.always_display_in_console
+
+        # map accessType
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.accessType
+          toFieldPath: spec.forProvider.varmap.access_type
+
+        # map accessSettings (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.accessSettings
+          toFieldPath: spec.forProvider.varmap.access_settings
+
+        # map capabilities (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.capabilities
+          toFieldPath: spec.forProvider.varmap.capabilities
+
+        # map login (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.login
+          toFieldPath: spec.forProvider.varmap.login
+
+        # map logout (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.logout
+          toFieldPath: spec.forProvider.varmap.logout
+
+        # map authorization (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.authorization
+          toFieldPath: spec.forProvider.varmap.authorization
+
+        # map extraConfig
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.extraConfig
+          toFieldPath: spec.forProvider.varmap.extra_config
+
+        # map scopes (object, no transformation needed for nested properties)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.scopes
+          toFieldPath: spec.forProvider.varmap.scopes
+
+        # map protocolMappers
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.protocolMappers
+          toFieldPath: spec.forProvider.varmap.protocol_mappers
+
+        # map permissions
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.permissions
+          toFieldPath: spec.forProvider.varmap.permissions
+
+        # deal with the secret ref
+        # now merge whatever was given for the secret
+        # adds prefix to the secret name for a default value
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.writeConnectionSecretToRef.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-client-creds"
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.writeSecretTo
+          toFieldPath: spec.writeConnectionSecretToRef
+          policy:
+            toFieldPath: ForceMergeObjects
+
+        # map outputs back to status
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.service_account_user_id
+          toFieldPath: status.serviceAccountUserId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.resource_server_id
+          toFieldPath: status.resourceServerId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.authorization_resource_server_id
+          toFieldPath: status.authorizationResourceServerId

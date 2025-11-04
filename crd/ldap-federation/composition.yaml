@@ -30,7 +30,7 @@ spec:
               name: keycloak
             forProvider:
               source: Remote
-              module: github.com/kubed-io/terraform-keycloak-components//modules/ldap_federation?ref=main
+              module: github.com/kubed-io/terraform-keycloak-components//modules/ldap-federation?ref=main
               # filled out by the patch-and-transform function 
               varmap: {}
               env: 
