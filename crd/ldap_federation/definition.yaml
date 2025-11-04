@@ -1,0 +1,449 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: ldapfederations.keycloak.kubed.io
+spec:
+  scope: Cluster
+  group: keycloak.kubed.io
+  names:
+    kind: LdapFederation
+    plural: ldapfederations
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - realm
+            - connectionUrl
+            - mappers
+            properties:
+              realm:
+                description: The realm in which to create the LDAP federation.
+                type: string
+              enabled:
+                description: Whether the LDAP federation is enabled.
+                type: boolean
+                default: true
+              vendor:
+                description: |
+                  (Optional) Can be one of OTHER, EDIRECTORY, AD, RHDS, or TIVOLI. When this is selected in the GUI, it provides reasonable defaults for other fields. When used with the Keycloak API, this attribute does nothing, but is still required. Defaults to
+                type: string 
+                default: OTHER
+                enum:
+                - OTHER
+                - EDIRECTORY
+                - AD
+                - RHDS
+                - TIVOLI
+              connectionUrl:
+                description: Connection URL to the LDAP server.
+                type: string
+              connectionTimeout:
+                description: Connection timeout for LDAP connections.
+                type: string
+              readTimeout:
+                description: Read timeout for LDAP connections.
+                type: string
+              bindSecretRef:
+                description: Reference to a Secret containing the bind DN and bind credential for the LDAP admin.
+                type: object
+                required:
+                - name
+                - namespace
+                properties:
+                  name:
+                    description: Name of the Secret.
+                    type: string
+                  namespace:
+                    description: Namespace of the Secret. Defaults to the same namespace as the LdapFederation.
+                    type: string
+              startTls:
+                description: When true, Keycloak will encrypt the connection to LDAP using STARTTLS, which will disable connection pooling.
+                type: boolean
+              useTruststoreSpi:
+                description: "Can be one of ALWAYS, ONLY_FOR_LDAPS, or NEVER: ALWAYS - Always use the truststore SPI for LDAP connections. NEVER - Never use the truststore SPI for LDAP connections. ONLY_FOR_LDAPS - Only use the truststore SPI if your LDAP connection uses the ldaps protocol."
+                type: string
+                enum:
+                - ALWAYS
+                - NEVER
+                - ONLY_FOR_LDAPS
+              syncSettings:
+                description: Settings for periodic sync of users from LDAP to Keycloak.
+                type: object
+                properties:
+                  importEnabled:
+                    description: When false, this provider will not import users from LDAP. Defaults to true.
+                    type: boolean
+                  syncRegistrations:
+                    description: When true, newly created users will be created within LDAP. Defaults to false.
+                    type: boolean
+                  changeSyncPeriod:
+                    description: The frequency of changed users sync in seconds. Defaults to 86400 (1 day).
+                    type: integer
+                  fullSyncPeriod:
+                    description: The frequency of full sync in seconds. Defaults to 604800 (1 week).
+                    type: integer
+                  batchSize:
+                    description: The number of users to sync within a single transaction. Defaults to 1000.
+                    type: integer
+                  pagination:
+                    description: When true, Keycloak assumes the LDAP server supports pagination. Defaults to true.
+                    type: boolean
+              mappers:
+                description: A set of mappers. Each item must have a common 'name' and 'type', and a configuration block matching the 'type'.
+                type: array
+                items:
+                  type: object
+                  # --- Common properties defined once ---
+                  required:
+                  - type
+                  properties:
+                    name:
+                      description: Display name of the mapper when displayed in the console.
+                      type: string
+                    type:
+                      description: The type of mapper. This determines which configuration block is used.
+                      type: string
+                      enum:
+                      - user
+                      - userAttribute
+                      - role
+                      - group
+                      - hardcodedRole
+                      - hardcodedGroup
+                      - hardcodedAttribute
+                      - fullName
+                      - custom
+                  # --- oneOf enforces that the config block matches the type ---
+                  oneOf:
+                  # --- 1. User ---
+                  - type: object
+                    required: [user]
+                    properties:
+                      type: { enum: [user] }
+                      user:
+                        description: Configuration for user mapper (base LDAP user federation settings).
+                        type: object
+                        required:
+                        - baseDn
+                        - objectClasses
+                        properties:
+                          baseDn:
+                            description: Full DN of LDAP tree where your users are.
+                            type: string
+                          objectClasses:
+                            description: All values of LDAP objectClass attribute for users in LDAP. Separated by commas.
+                            type: array
+                            items:
+                              type: string
+                          uuidAttribute:
+                            description: Name of the LDAP attribute, which is used as a unique object identifier (UUID) for objects in LDAP. Defaults to uid.
+                            type: string
+                            default: uid
+                          rdnAttribute:
+                            description: Name of the LDAP attribute, which is used as the RDN (top attribute) of typical user DN. Usually it's the same as the Username LDAP attribute. Defaults to cn.
+                            type: string
+                            default: cn
+                          usernameAttribute:
+                            description: Name of the LDAP attribute, which is mapped as Keycloak username. Defaults to uid.
+                            type: string
+                            default: uid
+                          searchFilter:
+                            description: Additional LDAP filter for filtering searched users. Leave this empty if you don't need additional filter.
+                            type: string
+                          searchScope:
+                            description: Can be one of ONE_LEVEL or SUBTREE. ONE_LEVEL - only search for users in the DN specified by User DNs. SUBTREE - search entire LDAP subtree.
+                            type: string
+                            enum:
+                            - ONE_LEVEL
+                            - SUBTREE
+                          trustEmail:
+                            description: If true, email provided by this provider is not verified even if verification is enabled for the realm.
+                            type: boolean
+                          mode:
+                            description: "Edit mode for users. Can be one of READ_ONLY, WRITABLE, or UNSYNCED."
+                            type: string
+                            enum:
+                            - READ_ONLY
+                            - WRITABLE
+                            - UNSYNCED
+                          validatePasswordPolicy:
+                            description: When true, Keycloak will validate passwords using the realm policy before updating it.
+                            type: boolean
+                          usePasswordModifyExtendedOP:
+                            description: When true, use the LDAPv3 Password Modify Extended Operation (RFC-3062).
+                            type: boolean
+                  # --- 2. User Attribute ---
+                  - type: object
+                    required: [userAttribute]
+                    properties:
+                      type: { enum: [userAttribute] }
+                      userAttribute:
+                        description: Configuration for user attribute mapper.
+                        type: object
+                        required:
+                        - ldapAttribute
+                        - userModelAttribute
+                        properties:
+                          ldapAttribute:
+                            description: Name of the LDAP attribute to map.
+                            type: string
+                          userModelAttribute:
+                            description: Name of the user property or attribute you want to map the LDAP attribute into.
+                            type: string
+                          alwaysReadValueFromLdap:
+                            description: When true, the value fetched from LDAP will override the value stored in Keycloak.
+                            type: boolean
+                          readOnly:
+                            description: When true, this attribute is not saved back to LDAP when the user attribute is updated in Keycloak.
+                            type: boolean
+                          isMandatoryInLdap:
+                            description: When true, this attribute must be provided by the user.
+                            type: boolean
+                          attributeForceDefault:
+                            description: When true, the default value will always be set for this attribute.
+                            type: boolean
+                          attributeDefaultValue:
+                            description: Default value to set in LDAP if the attribute is not already set.
+                            type: string
+                          isBinaryAttribute:
+                            description: Should be true for binary LDAP attributes.
+                            type: boolean
+                  # --- 3. Role ---
+                  - type: object
+                    required: [role]
+                    properties:
+                      type: { enum: [role] }
+                      role:
+                        description: Configuration for role mapper.
+                        type: object
+                        required:
+                        - baseDn
+                        - nameAttribute
+                        - objectClasses
+                        properties:
+                          baseDn:
+                            description: Full DN of LDAP tree where your roles are.
+                            type: string
+                          nameAttribute:
+                            description: Name of the LDAP attribute, which is used in role objects for the name and RDN of role.
+                            type: string
+                          objectClasses:
+                            description: Object class (or classes) of the role object.
+                            type: array
+                            items:
+                              type: string
+                          membershipAttribute:
+                            description: Name of the LDAP attribute on role, which is used for membership mappings.
+                            type: string
+                          membershipAttributeType:
+                            description: Can be one of DN or UID.
+                            type: string
+                            enum:
+                            - DN
+                            - UID
+                          membershipUserAttribute:
+                            description: Used with the Membership Attribute Type. If Membership Attribute Type is UID, this is the name of the LDAP attribute on the user that contains the UID.
+                            type: string
+                          memberofAttribute:
+                            description: Used when Retrieve Strategy is set to GET_ROLES_FROM_USER_MEMBEROF_ATTRIBUTE. This is the name of the LDAP attribute on the user that contains the roles the user is a member of.
+                            type: string
+                          searchFilter:
+                            description: Additional LDAP filter for filtering searched roles. Leave this empty if you don't need additional filter.
+                            type: string
+                          mode:
+                            description: "Can be one of READ_ONLY, LDAP_ONLY, or IMPORT."
+                            type: string
+                            enum:
+                            - READ_ONLY
+                            - LDAP_ONLY
+                            - IMPORT
+                          userRolesRetrieveStrategy:
+                            description: "Can be one of LOAD_ROLES_BY_MEMBER_ATTRIBUTE, GET_ROLES_FROM_USER_MEMBEROF_ATTRIBUTE, or LOAD_ROLES_BY_MEMBER_ATTRIBUTE_RECURSIVELY."
+                            type: string
+                            enum:
+                            - LOAD_ROLES_BY_MEMBER_ATTRIBUTE
+                            - GET_ROLES_FROM_USER_MEMBEROF_ATTRIBUTE
+                            - LOAD_ROLES_BY_MEMBER_ATTRIBUTE_RECURSIVELY
+                          useRealmRolesMapping:
+                            description: When true, realm roles are used instead of client roles.
+                            type: boolean
+                          clientId:
+                            description: Client ID for role mappings. Only used when Use Realm Roles Mapping is false.
+                            type: string
+                  # --- 4. Group ---
+                  - type: object
+                    required: [group]
+                    properties:
+                      type: { enum: [group] }
+                      group:
+                        description: Configuration for group mapper.
+                        type: object
+                        required:
+                        - baseDn
+                        - nameAttribute
+                        - objectClasses
+                        properties:
+                          baseDn:
+                            description: Full DN of LDAP tree where your groups are.
+                            type: string
+                          nameAttribute:
+                            description: Name of the LDAP attribute, which is used in group objects for the name and RDN of group.
+                            type: string
+                          objectClasses:
+                            description: Object class (or classes) of the group object.
+                            type: array
+                            items:
+                              type: string
+                          preserveInheritance:
+                            description: When true, group inheritance from LDAP is preserved.
+                            type: boolean
+                          ignoreMissing:
+                            description: When true, missing groups in LDAP are ignored.
+                            type: boolean
+                          membershipAttribute:
+                            description: Name of the LDAP attribute on group, which is used for membership mappings.
+                            type: string
+                          membershipAttributeType:
+                            description: Can be one of DN or UID.
+                            type: string
+                            enum:
+                            - DN
+                            - UID
+                          membershipUserAttribute:
+                            description: Used with the Membership Attribute Type. If Membership Attribute Type is UID, this is the name of the LDAP attribute on the user that contains the UID.
+                            type: string
+                          memberofAttribute:
+                            description: Used when Retrieve Strategy is set to GET_GROUPS_FROM_USER_MEMBEROF_ATTRIBUTE. This is the name of the LDAP attribute on the user that contains the groups the user is a member of.
+                            type: string
+                          searchFilter:
+                            description: Additional LDAP filter for filtering searched groups. Leave this empty if you don't need additional filter.
+                            type: string
+                          mode:
+                            description: "Can be one of READ_ONLY, LDAP_ONLY, or IMPORT."
+                            type: string
+                            enum:
+                            - READ_ONLY
+                            - LDAP_ONLY
+                            - IMPORT
+                          userRolesRetrieveStrategy:
+                            description: "Can be one of LOAD_GROUPS_BY_MEMBER_ATTRIBUTE, GET_GROUPS_FROM_USER_MEMBEROF_ATTRIBUTE, or LOAD_GROUPS_BY_MEMBER_ATTRIBUTE_RECURSIVELY."
+                            type: string
+                            enum:
+                            - LOAD_GROUPS_BY_MEMBER_ATTRIBUTE
+                            - GET_GROUPS_FROM_USER_MEMBEROF_ATTRIBUTE
+                            - LOAD_GROUPS_BY_MEMBER_ATTRIBUTE_RECURSIVELY
+                          mappedAttributes:
+                            description: List of attributes to sync from the LDAP group to the Keycloak group.
+                            type: array
+                            items:
+                              type: string
+                          dropNonExistingDuringSync:
+                            description: When true, groups that no longer exist in LDAP will be dropped from Keycloak during sync.
+                            type: boolean
+                          path:
+                            description: Group path in Keycloak. Defaults to / (root).
+                            type: string
+                  # --- 5. Hardcoded Role ---
+                  - type: object
+                    required: [hardcodedRole]
+                    properties:
+                      type: { enum: [hardcodedRole] }
+                      hardcodedRole:
+                        description: Configuration for hardcoded role mapper.
+                        type: object
+                        required:
+                        - name
+                        properties:
+                          name:
+                            description: The name of the role to assign to all users.
+                            type: string
+                  # --- 6. Hardcoded Group ---
+                  - type: object
+                    required: [hardcodedGroup]
+                    properties:
+                      type: { enum: [hardcodedGroup] }
+                      hardcodedGroup:
+                        description: Configuration for hardcoded group mapper.
+                        type: object
+                        required:
+                        - name
+                        properties:
+                          name:
+                            description: The name of the group to assign to all users.
+                            type: string
+                  # --- 7. Hardcoded Attribute ---
+                  - type: object
+                    required: [hardcodedAttribute]
+                    properties:
+                      type: { enum: [hardcodedAttribute] }
+                      hardcodedAttribute:
+                        description: Configuration for hardcoded attribute mapper.
+                        type: object
+                        required:
+                        - name
+                        - value
+                        properties:
+                          name:
+                            description: The name of the attribute to set.
+                            type: string
+                          value:
+                            description: The value to set for the attribute.
+                            type: string
+                  # --- 8. Full Name ---
+                  - type: object
+                    required: [fullName]
+                    properties:
+                      type: { enum: [fullName] }
+                      fullName:
+                        description: Configuration for full name mapper.
+                        type: object
+                        required:
+                        - attribute
+                        properties:
+                          attribute:
+                            description: The name of the LDAP attribute containing the user's full name.
+                            type: string
+                          readOnly:
+                            description: When true, this attribute is not saved back to LDAP when the full name is updated in Keycloak.
+                            type: boolean
+                          writeOnly:
+                            description: When true, the full name is written to LDAP but not read from it.
+                            type: boolean
+                  # --- 9. Custom ---
+                  - type: object
+                    required: [custom]
+                    properties:
+                      type: { enum: [custom] }
+                      custom:
+                        description: Configuration for custom mapper.
+                        type: object
+                        required:
+                        - providerId
+                        - providerType
+                        properties:
+                          providerId:
+                            description: The ID of the custom provider.
+                            type: string
+                          providerType:
+                            description: The type of the custom provider.
+                            type: string
+                          config:
+                            description: A map of key/value pairs to configure the custom mapper.
+                            type: object
+                            additionalProperties:
+                              type: string
+          status:
+            description: A Status represents the observed state
+            type: object
+            properties:
+              share:
+                description: Freeform field containing status information
+                type: object
+                x-kubernetes-preserve-unknown-fields: true

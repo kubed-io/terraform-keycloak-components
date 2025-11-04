@@ -1,0 +1,112 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: ldapfederations.keycloak.kubed.io
+spec:
+  writeConnectionSecretsToNamespace: crossplane
+  compositeTypeRef:
+    apiVersion: keycloak.kubed.io/v1alpha1
+    kind: LdapFederation
+  mode: Pipeline
+  pipeline:
+  - step: module
+    functionRef:
+      name: patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources: 
+      - name: workspace
+        base: 
+          apiVersion: opentofu.upbound.io/v1beta1
+          kind: Workspace
+          metadata:
+            name: keycloak-ldap-federation
+            annotations:
+              kubernetes.io/description: |
+                Create a federation configuration for keycloak to use ldap.
+          spec:
+            providerConfigRef:
+              name: keycloak
+            forProvider:
+              source: Remote
+              module: github.com/kubed-io/terraform-keycloak-components//modules/ldap_federation?ref=main
+              # filled out by the patch-and-transform function 
+              varmap: {}
+        patches: 
+
+        # name after the instance name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s.ldapfederations.keycloak"
+
+        # now set the actual workspace name as the external name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-ldapfederation"
+
+        # bind instance name to name variable
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.varmap.name
+
+        # map realm
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.realm
+          toFieldPath: spec.forProvider.varmap.realm
+
+        # map enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.enabled
+          toFieldPath: spec.forProvider.varmap.enabled
+
+        # map vendor
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.vendor
+          toFieldPath: spec.forProvider.varmap.vendor
+
+        # map connectionUrl
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.connectionUrl
+          toFieldPath: spec.forProvider.varmap.connection_url
+
+        # map connectionTimeout
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.connectionTimeout
+          toFieldPath: spec.forProvider.varmap.connection_timeout
+
+        # map readTimeout
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.readTimeout
+          toFieldPath: spec.forProvider.varmap.read_timeout
+
+        # map startTls
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.startTls
+          toFieldPath: spec.forProvider.varmap.start_tls
+
+        # map useTruststoreSpi
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.useTruststoreSpi
+          toFieldPath: spec.forProvider.varmap.use_truststore_spi
+
+        # map syncSettings
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.syncSettings
+          toFieldPath: spec.forProvider.varmap.sync_settings
+
+        # map mappers
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.mappers
+          toFieldPath: spec.forProvider.varmap.mappers
+        

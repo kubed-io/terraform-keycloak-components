@@ -1,0 +1,4 @@
+out.yaml
+.terraform
+.terraform.lock.hcl
+*.bak

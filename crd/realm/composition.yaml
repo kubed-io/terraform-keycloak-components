@@ -1,0 +1,76 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: realms.keycloak.kubed.io
+spec:
+  writeConnectionSecretsToNamespace: crossplane
+  compositeTypeRef:
+    apiVersion: keycloak.kubed.io/v1alpha1
+    kind: Realm
+  mode: Pipeline
+  pipeline:
+  - step: module
+    functionRef:
+      name: patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources: 
+      - name: workspace
+        base: 
+          apiVersion: opentofu.upbound.io/v1beta1
+          kind: Workspace
+          metadata:
+            name: realm
+            annotations:
+              kubernetes.io/description: |
+                Creates a Keycloak realm.
+          spec:
+            providerConfigRef:
+              name: keycloak
+            forProvider:
+              source: Remote
+              module: github.com/kubed-io/terraform-keycloak-components//modules/realm?ref=main
+              # filled out by the patch-and-transform function 
+              varmap: {}
+        patches: 
+
+        # name after the instance name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s.realms.keycloak"
+
+        # now set the actual workspace name as the external name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-realm"
+
+        # map name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.varmap.name
+
+        # map displayName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.displayName
+          toFieldPath: spec.forProvider.varmap.display_name
+
+        # map displayNameHtml
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.displayNameHtml
+          toFieldPath: spec.forProvider.varmap.display_name_html
+
+        # map enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.enabled
+          toFieldPath: spec.forProvider.varmap.enabled
