@@ -266,6 +266,7 @@ spec:
                       - baseDn
                       - nameAttribute
                       - objectClasses
+                      - membershipUserAttribute
                       properties:
                         baseDn:
                           description: Full DN of LDAP tree where your groups are.
