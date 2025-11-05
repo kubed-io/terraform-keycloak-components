@@ -21,7 +21,7 @@ output "resource_server_id" {
 
 output "service_account_user_id" {
   description = "(Computed) When service accounts are enabled for this client, this attribute is the unique ID for the Keycloak user that represents this service account."
-  value       = var.capabilities.serviceAccountsEnabled ? keycloak_openid_client.this.service_account_user_id : null
+  value       = var.capabilities.serviceAccountsEnabled == true ? keycloak_openid_client.this.service_account_user_id : null
 }
 
 # only output this is var.permissions is not null
