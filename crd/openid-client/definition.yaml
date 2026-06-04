@@ -503,6 +503,86 @@ spec:
                         addToAccessToken:
                           description: When true, the claim is added to the access token.
                           type: boolean
+              roleMappers:
+                description: |
+                  Role mappers attached to this client. Each has a `type` with a matching
+                  sub-object:
+                  - ldap: maps LDAP role-groups under a baseDn into CLIENT roles of this
+                    client (keycloak_ldap_role_mapper). The federation GUID is resolved by
+                    name (federationId, defaults to the realm name) via the Admin REST API.
+                  - generic: adds an existing role (by id) to this client's scope mappings
+                    (keycloak_generic_role_mapper).
+                type: array
+                items:
+                  type: object
+                  required:
+                  - type
+                  properties:
+                    name:
+                      description: Display name of the mapper. Defaults to the type.
+                      type: string
+                    type:
+                      description: The kind of role mapper.
+                      type: string
+                      enum:
+                      - ldap
+                      - generic
+                    ldap:
+                      description: Settings for an ldap-type role mapper.
+                      type: object
+                      required:
+                      - baseDn
+                      properties:
+                        baseDn:
+                          description: LDAP DN whose cn=<role> children become this client's roles.
+                          type: string
+                        nameAttribute:
+                          description: LDAP attribute for the role name/RDN. Defaults to cn.
+                          type: string
+                        objectClasses:
+                          description: Object classes of the role entries. Defaults to [groupOfNames].
+                          type: array
+                          items:
+                            type: string
+                        membershipAttribute:
+                          description: Membership attribute on the role. Defaults to member.
+                          type: string
+                        membershipAttributeType:
+                          description: DN or UID. Defaults to DN.
+                          type: string
+                        membershipUserAttribute:
+                          description: User attribute used for membership. Defaults to uid.
+                          type: string
+                        userRolesRetrieveStrategy:
+                          description: |
+                            One of LOAD_ROLES_BY_MEMBER_ATTRIBUTE,
+                            GET_ROLES_FROM_USER_MEMBEROF_ATTRIBUTE (default), or
+                            LOAD_ROLES_BY_MEMBER_ATTRIBUTE_RECURSIVELY.
+                          type: string
+                        memberofAttribute:
+                          description: memberOf attribute name. Defaults to memberOf.
+                          type: string
+                        mode:
+                          description: READ_ONLY, LDAP_ONLY, or IMPORT.
+                          type: string
+                        searchFilter:
+                          description: Optional extra LDAP filter for roles (must be parenthesized).
+                          type: string
+                        federationId:
+                          description: |
+                            The LDAP user-federation NAME (not GUID). Defaults to the realm
+                            name. The module resolves its GUID via the Admin REST components
+                            endpoint.
+                          type: string
+                    generic:
+                      description: Settings for a generic-type role mapper.
+                      type: object
+                      required:
+                      - roleId
+                      properties:
+                        roleId:
+                          description: ID of the role to add to this client's scope mappings.
+                          type: string
               permissions:
                 description: |
                   Client permissions configuration. This is part of a preview Keycloak feature for fine-grained permissions.

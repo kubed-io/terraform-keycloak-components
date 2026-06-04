@@ -133,6 +133,13 @@ spec:
           fromFieldPath: spec.protocolMappers
           toFieldPath: spec.forProvider.varmap.protocol_mappers
 
+        # map roleMappers (ldap/generic). creds are NOT wired here: the keycloak
+        # ProviderConfig already mounts username/password files into the workspace
+        # (file() reads them), and url/client_id fall back to the module defaults.
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.roleMappers
+          toFieldPath: spec.forProvider.varmap.role_mappers
+
         # map permissions
         - type: FromCompositeFieldPath
           fromFieldPath: spec.permissions

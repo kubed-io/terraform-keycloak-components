@@ -83,11 +83,10 @@ variable "capabilities" {
   })
   default = {}
   validation {
-    condition = (
-      !contains(keys(var.capabilities), "pkceCodeChallengeMethod") ||
-      var.capabilities.pkceCodeChallengeMethod == null ||
-      contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod)
-    )
+    # try() is the null/absent guard: when pkceCodeChallengeMethod is null/unset the
+    # contains() errors and falls back to true (null is allowed). Independent of `||`
+    # short-circuit behavior, which differs across tofu versions during validation.
+    condition     = try(contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod), true)
     error_message = "pkceCodeChallengeMethod must be either 'plain', 'S256', or null."
   }
 }
@@ -135,9 +134,10 @@ EOT
   default  = null
   nullable = true
   validation {
-    condition = (
-      var.authorization == null || contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode)
-    )
+    # try() also serves as the null guard: when var.authorization is null the attribute
+    # access errors and try() falls back to true (null is allowed). Avoids relying on
+    # `||` short-circuiting, which differs across tofu versions during validation.
+    condition     = try(contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode), true)
     error_message = "policyEnforcementMode must be one of: ENFORCING, PERMISSIVE, DISABLED."
   }
 }
@@ -270,12 +270,75 @@ EOT
   }))
   default = null 
   nullable = true
-  # use terrraform validation to check if scope is one of the allowed values if the variable is not null
+  # check each scope is allowed when set. try() is the null guard: iterating a null set
+  # errors and falls back to true (null is allowed) — independent of `||` short-circuit
+  # behavior, which differs across tofu versions during validation.
   validation {
-    condition = (
-      var.permissions == null ||
-      alltrue([for p in var.permissions : contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)])
-    )
+    condition     = try(alltrue([for p in var.permissions : contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)]), true)
     error_message = "Each permission's scope must be one of: view, manage, configure, map-roles, map-roles-client-scope, map-roles-composite, token-exchange."
+  }
+}
+
+variable "creds" {
+  description = <<EOT
+Keycloak admin credentials + base URL used ONLY to mint an admin token for the
+LDAP-type role mappers (which resolve a federation GUID by name over the Admin REST
+API; the keycloak provider has no data source for it). At runtime under Crossplane the
+module prefers the provider-mounted credential files (file("username")/file("password")/
+file("url")); these vars are the fallback for standalone Terraform and tests. Unused
+unless a role mapper of type "ldap" is declared.
+EOT
+  type = object({
+    url       = optional(string, "http://keycloak-service.auth:8080")
+    client_id = optional(string, "admin-cli")
+    username  = optional(string)
+    password  = optional(string)
+  })
+  default   = {}
+  sensitive = true
+}
+
+variable "role_mappers" {
+  description = <<EOT
+Role mappers attached to THIS client. Each has a `type` with a matching sub-object:
+
+- type "ldap"    → keycloak_ldap_role_mapper: maps the cn=<role> children under an LDAP
+  subtree (`baseDn`) into CLIENT roles of this client. `federationId` is the LDAP
+  user-federation NAME (defaults to the realm name); the module resolves its GUID via
+  the Admin REST components endpoint. Membership is read from the user's memberOf.
+- type "generic" → keycloak_generic_role_mapper: adds an existing role (by id)
+  to this client's scope mappings (used with full_scope_allowed=false).
+EOT
+  type = set(object({
+    type = string
+    name = optional(string, null)
+    ldap = optional(object({
+      baseDn                    = string
+      nameAttribute             = optional(string, "cn")
+      objectClasses             = optional(list(string), ["groupOfNames"])
+      membershipAttribute       = optional(string, "member")
+      membershipAttributeType   = optional(string, "DN")
+      membershipUserAttribute   = optional(string, "uid")
+      userRolesRetrieveStrategy = optional(string, "GET_ROLES_FROM_USER_MEMBEROF_ATTRIBUTE")
+      memberofAttribute         = optional(string, "memberOf")
+      mode                      = optional(string)
+      searchFilter              = optional(string)
+      # LDAP user-federation NAME (not GUID). Defaults to the realm name. The module
+      # resolves the GUID by name. These map to CLIENT roles of THIS client, so
+      # use_realm_roles_mapping is forced false and client_id is this client.
+      federationId = optional(string, null)
+    }))
+    generic = optional(object({
+      # The ID of the role to add to this client's scope mappings.
+      roleId = string
+    }))
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for m in var.role_mappers : contains(["ldap", "generic"], m.type) && m[m.type] != null
+    ])
+    error_message = "Each role mapper must have type 'ldap' or 'generic' and a non-null sub-object matching its type."
   }
 }
