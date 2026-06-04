@@ -136,3 +136,17 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.bindSecretRef.namespace
           toFieldPath: spec.forProvider.env[1].secretKeyRef.namespace
+
+        # publish the module outputs back to the XR status
+        # full outputs blob → status.share (freeform)
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs
+          toFieldPath: status.share
+        # the federation GUID → status.federationId (ldap_user_federation_id for
+        # any role mapper attached to this federation from another resource)
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.id
+          toFieldPath: status.federationId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.realm
+          toFieldPath: status.realm
