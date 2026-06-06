@@ -33,7 +33,7 @@ spec:
               vendor:
                 description: |
                   (Optional) Can be one of OTHER, EDIRECTORY, AD, RHDS, or TIVOLI. When this is selected in the GUI, it provides reasonable defaults for other fields. When used with the Keycloak API, this attribute does nothing, but is still required. Defaults to
-                type: string 
+                type: string
                 default: OTHER
                 enum:
                 - OTHER
@@ -41,6 +41,11 @@ spec:
                 - AD
                 - RHDS
                 - TIVOLI
+              deleteDefaultMappers:
+                description: |
+                  (Optional) When true, delete the default mappers Keycloak auto-creates for a new LDAP federation. Those defaults are READ-ONLY and, on a WRITABLE federation, shadow custom writable mappers for the same attribute (the read-only one wins and blocks the write back to LDAP). Set true so only the declared mappers exist. Defaults to false.
+                type: boolean
+                default: false
               connectionUrl:
                 description: Connection URL to the LDAP server.
                 type: string

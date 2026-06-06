@@ -4,6 +4,8 @@ resource "keycloak_ldap_user_federation" "this" {
   name     = local.name
   realm_id = data.keycloak_realm.this.id
   enabled  = var.enabled
+  # delete Keycloak's read-only default mappers so they don't shadow custom writable ones
+  delete_default_mappers = var.delete_default_mappers
 
   # server connection details
   vendor             = var.vendor

@@ -84,6 +84,11 @@ spec:
           fromFieldPath: spec.vendor
           toFieldPath: spec.forProvider.varmap.vendor
 
+        # map deleteDefaultMappers
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.deleteDefaultMappers
+          toFieldPath: spec.forProvider.varmap.delete_default_mappers
+
         # map connectionUrl
         - type: FromCompositeFieldPath
           fromFieldPath: spec.connectionUrl

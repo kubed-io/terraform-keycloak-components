@@ -23,6 +23,12 @@ variable "vendor" {
   nullable    = true
 }
 
+variable "delete_default_mappers" {
+  description = "When true, delete the default mappers Keycloak auto-creates for a new LDAP federation. Those defaults are READ-ONLY; on a WRITABLE federation they shadow custom writable mappers for the same attribute (the read-only one wins and blocks the write). Set true so only the declared mappers exist."
+  type        = bool
+  default     = false
+}
+
 variable "connection_url" {
   description = "Connection URL to the LDAP server."
   type        = string
