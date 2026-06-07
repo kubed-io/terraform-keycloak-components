@@ -160,7 +160,7 @@ spec:
         # Each env entry is built entirely by these patches (the base has NO env), every one
         # keyed off credentialsRef — so a realm without SMTP emits no env and the workspace
         # never tries to resolve a phantom secret. env[0] feeds TF_VAR_smtp_username
-        # (key: username), env[1] feeds TF_VAR_smtp_password (key: password). The constant
+        # (key: mail), env[1] feeds TF_VAR_smtp_password (key: password). The constant
         # env-name / secret-key strings are produced with a Format transform (it ignores the
         # input value but only fires when the source — credentialsRef.name — is present).
         - type: FromCompositeFieldPath
@@ -178,7 +178,10 @@ spec:
           - type: string
             string:
               type: Format
-              fmt: username
+              # SMTP AUTH username = the SA's `mail` (e.g. keycloak@mail.kellyferrone.com),
+              # NOT its uid — docker-mailserver authenticates SMTP AUTH by binding the user it
+              # finds via (mail=%s), so the username sent must equal the LDAP mail attribute.
+              fmt: mail
         - type: FromCompositeFieldPath
           fromFieldPath: spec.smtp.credentialsRef.name
           toFieldPath: spec.forProvider.env[0].secretKeyRef.name
