@@ -33,10 +33,25 @@ spec:
               module: github.com/kubed-io/terraform-keycloak-components//modules/realm?ref=main
               # filled out by the patch-and-transform function
               varmap: {}
-              # NOTE: env (SMTP creds) is intentionally NOT in the base. It is built entirely
-              # by the patches below, gated on spec.smtp.credentialsRef — so when a realm has
-              # no SMTP configured, no env entries are created and the workspace doesn't try to
-              # resolve a phantom secret.
+              # SMTP creds → sensitive TF_VAR_*. The env entries' NAME + secret KEY are static
+              # here (constants); only the secretKeyRef name/namespace are patched, from
+              # spec.smtp.credentialsRef. The username comes from the SA secret's `mail` key
+              # (docker-mailserver authenticates SMTP AUTH by binding the user it resolves via
+              # (mail=%s), so the username must equal the LDAP mail attribute, not the uid).
+              # A realm without spec.smtp leaves secretKeyRef.name unset (the patch is skipped)
+              # and the SMTP block itself is never emitted by the module, so the unused env is
+              # inert. Same secretRef→env pattern as the LdapFederation composition.
+              env:
+              - name: TF_VAR_smtp_username
+                secretKeyRef:
+                  key: mail
+                  name: ""
+                  namespace: ""
+              - name: TF_VAR_smtp_password
+                secretKeyRef:
+                  key: password
+                  name: ""
+                  namespace: ""
         patches:
 
         # name after the instance name
@@ -157,53 +172,15 @@ spec:
           toFieldPath: spec.forProvider.varmap.smtp.allowUtf8
 
         # --- SMTP creds → TF_VAR env (the smtp.credentialsRef Secret) ---
-        # Each env entry is built entirely by these patches (the base has NO env), every one
-        # keyed off credentialsRef — so a realm without SMTP emits no env and the workspace
-        # never tries to resolve a phantom secret. env[0] feeds TF_VAR_smtp_username
-        # (key: mail), env[1] feeds TF_VAR_smtp_password (key: password). The constant
-        # env-name / secret-key strings are produced with a Format transform (it ignores the
-        # input value but only fires when the source — credentialsRef.name — is present).
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.smtp.credentialsRef.name
-          toFieldPath: spec.forProvider.env[0].name
-          transforms:
-          - type: string
-            string:
-              type: Format
-              fmt: TF_VAR_smtp_username
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.smtp.credentialsRef.name
-          toFieldPath: spec.forProvider.env[0].secretKeyRef.key
-          transforms:
-          - type: string
-            string:
-              type: Format
-              # SMTP AUTH username = the SA's `mail` (e.g. keycloak@mail.kellyferrone.com),
-              # NOT its uid — docker-mailserver authenticates SMTP AUTH by binding the user it
-              # finds via (mail=%s), so the username sent must equal the LDAP mail attribute.
-              fmt: mail
+        # env[0]/env[1] (name + secret key) are static in the base; here we only fill the
+        # secretKeyRef name/namespace from spec.smtp.credentialsRef. A realm without spec.smtp
+        # leaves them at "" (patch skipped) and the module emits no SMTP block, so it's inert.
         - type: FromCompositeFieldPath
           fromFieldPath: spec.smtp.credentialsRef.name
           toFieldPath: spec.forProvider.env[0].secretKeyRef.name
         - type: FromCompositeFieldPath
           fromFieldPath: spec.smtp.credentialsRef.namespace
           toFieldPath: spec.forProvider.env[0].secretKeyRef.namespace
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.smtp.credentialsRef.name
-          toFieldPath: spec.forProvider.env[1].name
-          transforms:
-          - type: string
-            string:
-              type: Format
-              fmt: TF_VAR_smtp_password
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.smtp.credentialsRef.name
-          toFieldPath: spec.forProvider.env[1].secretKeyRef.key
-          transforms:
-          - type: string
-            string:
-              type: Format
-              fmt: password
         - type: FromCompositeFieldPath
           fromFieldPath: spec.smtp.credentialsRef.name
           toFieldPath: spec.forProvider.env[1].secretKeyRef.name
