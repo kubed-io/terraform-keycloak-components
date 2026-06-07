@@ -1,0 +1,69 @@
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: Realm
+metadata:
+  name: kubed
+spec:
+  displayName: Kubed Realm
+
+  # --- General ---
+  sslRequired: external
+  userManagedAccess: false
+
+  # --- Themes ---
+  themes:
+    loginTheme: keycloak
+    emailTheme: keycloak
+
+  # --- Login ---
+  login:
+    registrationAllowed: false
+    resetPasswordAllowed: true
+    rememberMe: true
+    verifyEmail: true
+    loginWithEmailAllowed: true
+
+  # --- Tokens / Sessions ---
+  tokens:
+    ssoSessionIdleTimeout: 30m
+    ssoSessionMaxLifespan: 10h
+    accessTokenLifespan: 5m
+
+  # --- Email / SMTP ---
+  # The LDAP service-account secret doubles as the SMTP credential: credentialsRef
+  # points at a Secret with username/password keys, wired into the realm's SMTP auth.
+  smtp:
+    host: docker-mailserver.connect.svc.cluster.local
+    port: 587
+    from: noreply@kubed.io
+    fromDisplayName: Kubed
+    starttls: true
+    credentialsRef:
+      name: keycloak-mail-creds
+      namespace: auth
+
+  # --- Security Defenses ---
+  securityDefenses:
+    bruteForceDetection:
+      maxLoginFailures: 30
+      permanentLockout: false
+
+  # --- Localization ---
+  internationalization:
+    supportedLocales:
+    - en
+    defaultLocale: en
+
+  # --- Authentication → Policies ---
+  policies:
+    passwordPolicy: upperCase(1) and length(8) and notUsername
+    otpPolicy:
+      type: totp
+      algorithm: HmacSHA1
+      digits: 6
+      period: 30
+    webAuthnPolicy:
+      relyingPartyEntityName: Kubed
+      relyingPartyId: auth.kubed.io
+      signatureAlgorithms:
+      - ES256
+      - RS256

@@ -15,9 +15,9 @@ spec:
     input:
       apiVersion: pt.fn.crossplane.io/v1beta1
       kind: Resources
-      resources: 
+      resources:
       - name: workspace
-        base: 
+        base:
           apiVersion: opentofu.upbound.io/v1beta1
           kind: Workspace
           metadata:
@@ -31,9 +31,13 @@ spec:
             forProvider:
               source: Remote
               module: github.com/kubed-io/terraform-keycloak-components//modules/realm?ref=main
-              # filled out by the patch-and-transform function 
+              # filled out by the patch-and-transform function
               varmap: {}
-        patches: 
+              # NOTE: env (SMTP creds) is intentionally NOT in the base. It is built entirely
+              # by the patches below, gated on spec.smtp.credentialsRef — so when a realm has
+              # no SMTP configured, no env entries are created and the workspace doesn't try to
+              # resolve a phantom secret.
+        patches:
 
         # name after the instance name
         - type: FromCompositeFieldPath
@@ -55,22 +59,156 @@ spec:
               type: Format
               fmt: "%s-realm"
 
-        # map name
+        # --- map name ---
         - type: FromCompositeFieldPath
           fromFieldPath: metadata.name
           toFieldPath: spec.forProvider.varmap.name
 
-        # map displayName
+        # --- General (top-level) ---
         - type: FromCompositeFieldPath
           fromFieldPath: spec.displayName
           toFieldPath: spec.forProvider.varmap.display_name
-
-        # map displayNameHtml
         - type: FromCompositeFieldPath
           fromFieldPath: spec.displayNameHtml
           toFieldPath: spec.forProvider.varmap.display_name_html
-
-        # map enabled
         - type: FromCompositeFieldPath
           fromFieldPath: spec.enabled
           toFieldPath: spec.forProvider.varmap.enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.sslRequired
+          toFieldPath: spec.forProvider.varmap.ssl_required
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.userManagedAccess
+          toFieldPath: spec.forProvider.varmap.user_managed_access
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.organizationsEnabled
+          toFieldPath: spec.forProvider.varmap.organizations_enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.adminPermissionsEnabled
+          toFieldPath: spec.forProvider.varmap.admin_permissions_enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.internalId
+          toFieldPath: spec.forProvider.varmap.internal_id
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.terraformDeletionProtection
+          toFieldPath: spec.forProvider.varmap.terraform_deletion_protection
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.attributes
+          toFieldPath: spec.forProvider.varmap.attributes
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.defaultDefaultClientScopes
+          toFieldPath: spec.forProvider.varmap.default_default_client_scopes
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.defaultOptionalClientScopes
+          toFieldPath: spec.forProvider.varmap.default_optional_client_scopes
+
+        # --- grouped tabs: map the whole nested object straight to its var ---
+        # (inner keys stay camelCase, matching the module's object var keys)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.themes
+          toFieldPath: spec.forProvider.varmap.themes
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.login
+          toFieldPath: spec.forProvider.varmap.login
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.tokens
+          toFieldPath: spec.forProvider.varmap.tokens
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.securityDefenses
+          toFieldPath: spec.forProvider.varmap.security_defenses
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.internationalization
+          toFieldPath: spec.forProvider.varmap.internationalization
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.policies
+          toFieldPath: spec.forProvider.varmap.policies
+
+        # --- SMTP: mapped field-by-field so the credentialsRef (handled via env,
+        # below) is NOT passed into the module's smtp object var ---
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.host
+          toFieldPath: spec.forProvider.varmap.smtp.host
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.port
+          toFieldPath: spec.forProvider.varmap.smtp.port
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.from
+          toFieldPath: spec.forProvider.varmap.smtp.from
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.fromDisplayName
+          toFieldPath: spec.forProvider.varmap.smtp.fromDisplayName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.replyTo
+          toFieldPath: spec.forProvider.varmap.smtp.replyTo
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.replyToDisplayName
+          toFieldPath: spec.forProvider.varmap.smtp.replyToDisplayName
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.envelopeFrom
+          toFieldPath: spec.forProvider.varmap.smtp.envelopeFrom
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.starttls
+          toFieldPath: spec.forProvider.varmap.smtp.starttls
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.ssl
+          toFieldPath: spec.forProvider.varmap.smtp.ssl
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.allowUtf8
+          toFieldPath: spec.forProvider.varmap.smtp.allowUtf8
+
+        # --- SMTP creds → TF_VAR env (the smtp.credentialsRef Secret) ---
+        # Each env entry is built entirely by these patches (the base has NO env), every one
+        # keyed off credentialsRef — so a realm without SMTP emits no env and the workspace
+        # never tries to resolve a phantom secret. env[0] feeds TF_VAR_smtp_username
+        # (key: username), env[1] feeds TF_VAR_smtp_password (key: password). The constant
+        # env-name / secret-key strings are produced with a Format transform (it ignores the
+        # input value but only fires when the source — credentialsRef.name — is present).
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[0].name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: TF_VAR_smtp_username
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[0].secretKeyRef.key
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: username
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[0].secretKeyRef.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.namespace
+          toFieldPath: spec.forProvider.env[0].secretKeyRef.namespace
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[1].name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: TF_VAR_smtp_password
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[1].secretKeyRef.key
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: password
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.name
+          toFieldPath: spec.forProvider.env[1].secretKeyRef.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.smtp.credentialsRef.namespace
+          toFieldPath: spec.forProvider.env[1].secretKeyRef.namespace
+
+        # publish the module outputs back to the XR status (freeform)
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs
+          toFieldPath: status.share

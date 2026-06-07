@@ -19,6 +19,8 @@ spec:
           spec:
             type: object
             properties:
+
+              # --- General (top-level) ---
               displayName:
                 description: The display name of the realm.
                 type: string
@@ -29,6 +31,323 @@ spec:
                 description: When false, users and clients will not be able to access this realm. Defaults to true.
                 type: boolean
                 default: true
+              sslRequired:
+                description: 'Require SSL: one of none | external | all.'
+                type: string
+                enum:
+                - none
+                - external
+                - all
+              userManagedAccess:
+                description: When true, users are allowed to manage their own resources.
+                type: boolean
+              organizationsEnabled:
+                description: When true, organization support is enabled.
+                type: boolean
+              adminPermissionsEnabled:
+                description: Enables fine-grained admin permissions (v2).
+                type: boolean
+              internalId:
+                description: Override the realm's internal ID (defaults to the realm name).
+                type: string
+              terraformDeletionProtection:
+                description: When true, the realm cannot be deleted.
+                type: boolean
+              attributes:
+                description: Custom realm attributes (also where General fields like frontendUrl live).
+                type: object
+                additionalProperties:
+                  type: string
+              defaultDefaultClientScopes:
+                description: Default 'default' client scopes for new clients.
+                type: array
+                items:
+                  type: string
+              defaultOptionalClientScopes:
+                description: Default 'optional' client scopes for new clients.
+                type: array
+                items:
+                  type: string
+
+              # --- Realm Settings → Themes ---
+              themes:
+                description: Themes tab — login/account/admin/email theme names.
+                type: object
+                properties:
+                  loginTheme:
+                    type: string
+                  accountTheme:
+                    type: string
+                  adminTheme:
+                    type: string
+                  emailTheme:
+                    type: string
+
+              # --- Realm Settings → Login ---
+              login:
+                description: Login tab booleans (Require SSL is sslRequired, top-level).
+                type: object
+                properties:
+                  registrationAllowed:
+                    type: boolean
+                  registrationEmailAsUsername:
+                    type: boolean
+                  editUsernameAllowed:
+                    type: boolean
+                  resetPasswordAllowed:
+                    type: boolean
+                  rememberMe:
+                    type: boolean
+                  verifyEmail:
+                    type: boolean
+                  loginWithEmailAllowed:
+                    type: boolean
+                  duplicateEmailsAllowed:
+                    type: boolean
+
+              # --- Realm Settings → Tokens / Sessions ---
+              # Duration values are Go-duration strings (e.g. "30m", "1h"); the rest are ints.
+              tokens:
+                description: Tokens/Sessions tab — session timeouts and token lifespans.
+                type: object
+                properties:
+                  defaultSignatureAlgorithm:
+                    type: string
+                  revokeRefreshToken:
+                    type: boolean
+                  refreshTokenMaxReuse:
+                    type: integer
+                  ssoSessionIdleTimeout:
+                    type: string
+                  ssoSessionMaxLifespan:
+                    type: string
+                  ssoSessionIdleTimeoutRememberMe:
+                    type: string
+                  ssoSessionMaxLifespanRememberMe:
+                    type: string
+                  offlineSessionIdleTimeout:
+                    type: string
+                  offlineSessionMaxLifespan:
+                    type: string
+                  offlineSessionMaxLifespanEnabled:
+                    type: boolean
+                  clientSessionIdleTimeout:
+                    type: string
+                  clientSessionMaxLifespan:
+                    type: string
+                  accessTokenLifespan:
+                    type: string
+                  accessTokenLifespanForImplicitFlow:
+                    type: string
+                  accessCodeLifespan:
+                    type: string
+                  accessCodeLifespanLogin:
+                    type: string
+                  accessCodeLifespanUserAction:
+                    type: string
+                  actionTokenGeneratedByUserLifespan:
+                    type: string
+                  actionTokenGeneratedByAdminLifespan:
+                    type: string
+                  oauth2DeviceCodeLifespan:
+                    type: string
+                  oauth2DevicePollingInterval:
+                    type: integer
+
+              # --- Realm Settings → Email (SMTP) ---
+              smtp:
+                description: |
+                  Email tab SMTP server settings. Auth credentials are NOT inlined — they are
+                  sourced from credentialsRef (a Secret with username/password keys) and wired
+                  into TF_VAR_smtp_username/password by the composition.
+                type: object
+                required:
+                - host
+                - from
+                properties:
+                  host:
+                    type: string
+                  port:
+                    type: integer
+                  from:
+                    type: string
+                  fromDisplayName:
+                    type: string
+                  replyTo:
+                    type: string
+                  replyToDisplayName:
+                    type: string
+                  envelopeFrom:
+                    type: string
+                  starttls:
+                    type: boolean
+                  ssl:
+                    type: boolean
+                  allowUtf8:
+                    type: boolean
+                  credentialsRef:
+                    description: A Secret holding the SMTP auth username/password keys.
+                    type: object
+                    required:
+                    - name
+                    - namespace
+                    properties:
+                      name:
+                        type: string
+                      namespace:
+                        type: string
+
+              # --- Realm Settings → Security Defenses ---
+              securityDefenses:
+                description: Security Defenses tab — response headers + brute-force detection.
+                type: object
+                properties:
+                  headers:
+                    type: object
+                    properties:
+                      xFrameOptions:
+                        type: string
+                      contentSecurityPolicy:
+                        type: string
+                      contentSecurityPolicyReportOnly:
+                        type: string
+                      xContentTypeOptions:
+                        type: string
+                      xRobotsTag:
+                        type: string
+                      xXssProtection:
+                        type: string
+                      strictTransportSecurity:
+                        type: string
+                      referrerPolicy:
+                        type: string
+                  bruteForceDetection:
+                    type: object
+                    properties:
+                      permanentLockout:
+                        type: boolean
+                      maxTemporaryLockouts:
+                        type: integer
+                      maxLoginFailures:
+                        type: integer
+                      waitIncrementSeconds:
+                        type: integer
+                      quickLoginCheckMilliSeconds:
+                        type: integer
+                      minimumQuickLoginWaitSeconds:
+                        type: integer
+                      maxFailureWaitSeconds:
+                        type: integer
+                      failureResetTimeSeconds:
+                        type: integer
+
+              # --- Realm Settings → Localization ---
+              internationalization:
+                description: Localization — supported locales + default locale.
+                type: object
+                required:
+                - supportedLocales
+                - defaultLocale
+                properties:
+                  supportedLocales:
+                    type: array
+                    items:
+                      type: string
+                  defaultLocale:
+                    type: string
+
+              # --- Authentication → Policies ---
+              policies:
+                description: Authentication → Policies — password policy + OTP + WebAuthn (+ passwordless).
+                type: object
+                properties:
+                  passwordPolicy:
+                    description: e.g. "upperCase(1) and length(8) and notUsername".
+                    type: string
+                  otpPolicy:
+                    type: object
+                    properties:
+                      type:
+                        description: totp | hotp
+                        type: string
+                      algorithm:
+                        description: HmacSHA1 | HmacSHA256 | HmacSHA512
+                        type: string
+                      digits:
+                        type: integer
+                      initialCounter:
+                        type: integer
+                      lookAheadWindow:
+                        type: integer
+                      period:
+                        type: integer
+                      codeReusable:
+                        type: boolean
+                  webAuthnPolicy:
+                    type: object
+                    properties:
+                      relyingPartyEntityName:
+                        type: string
+                      relyingPartyId:
+                        type: string
+                      signatureAlgorithms:
+                        type: array
+                        items:
+                          type: string
+                      attestationConveyancePreference:
+                        type: string
+                      authenticatorAttachment:
+                        type: string
+                      requireResidentKey:
+                        type: string
+                      userVerificationRequirement:
+                        type: string
+                      createTimeout:
+                        type: integer
+                      avoidSameAuthenticatorRegister:
+                        type: boolean
+                      acceptableAaguids:
+                        type: array
+                        items:
+                          type: string
+                      extraOrigins:
+                        type: array
+                        items:
+                          type: string
+                  webAuthnPasswordlessPolicy:
+                    type: object
+                    properties:
+                      relyingPartyEntityName:
+                        type: string
+                      relyingPartyId:
+                        type: string
+                      signatureAlgorithms:
+                        type: array
+                        items:
+                          type: string
+                      attestationConveyancePreference:
+                        type: string
+                      authenticatorAttachment:
+                        type: string
+                      requireResidentKey:
+                        type: string
+                      userVerificationRequirement:
+                        type: string
+                      createTimeout:
+                        type: integer
+                      avoidSameAuthenticatorRegister:
+                        type: boolean
+                      acceptableAaguids:
+                        type: array
+                        items:
+                          type: string
+                      extraOrigins:
+                        type: array
+                        items:
+                          type: string
+                      passwordlessPasskeysEnabled:
+                        type: boolean
+
           status:
             description: A Status represents the observed state
             type: object
