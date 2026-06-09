@@ -95,3 +95,16 @@ resource "keycloak_ldap_hardcoded_attribute_mapper" "this" {
   attribute_name          = each.value.hardcodedAttribute.name
   attribute_value         = each.value.hardcodedAttribute.value
 }
+
+resource "keycloak_ldap_full_name_mapper" "this" {
+  for_each = {
+    for mapper in var.mappers : coalesce(mapper.name, mapper.type) => mapper
+    if mapper.type == "fullName"
+  }
+  realm_id                 = data.keycloak_realm.this.id
+  ldap_user_federation_id  = keycloak_ldap_user_federation.this.id
+  name                     = each.key
+  ldap_full_name_attribute = each.value.fullName.attribute
+  read_only                = each.value.fullName.readOnly
+  write_only               = each.value.fullName.writeOnly
+}
