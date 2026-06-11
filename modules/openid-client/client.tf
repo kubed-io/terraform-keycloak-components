@@ -10,11 +10,12 @@ resource "keycloak_openid_client" "this" {
   always_display_in_console = var.always_display_in_console
 
   # Access Settings
-  root_url            = var.access_settings.rootUrl
-  admin_url           = var.access_settings.adminUrl
-  base_url            = var.access_settings.baseUrl
-  valid_redirect_uris = var.access_settings.redirectUris
-  web_origins         = var.access_settings.webOrigins
+  root_url                        = var.access_settings.rootUrl
+  admin_url                       = var.access_settings.adminUrl
+  base_url                        = var.access_settings.baseUrl
+  valid_redirect_uris             = var.access_settings.redirectUris
+  valid_post_logout_redirect_uris = var.access_settings.postLogoutRedirectUris
+  web_origins                     = var.access_settings.webOrigins
 
   # Capabilities
   standard_flow_enabled                      = var.capabilities.standardFlowEnabled

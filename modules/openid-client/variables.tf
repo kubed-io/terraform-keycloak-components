@@ -61,11 +61,12 @@ EOT
 variable "access_settings" {
   description = "A map of access settings for the OpenID client."
   type = object({
-    rootUrl      = optional(string)
-    adminUrl     = optional(string)
-    baseUrl      = optional(string)
-    redirectUris = optional(list(string))
-    webOrigins   = optional(list(string))
+    rootUrl                = optional(string)
+    adminUrl               = optional(string)
+    baseUrl                = optional(string)
+    redirectUris           = optional(list(string))
+    postLogoutRedirectUris = optional(list(string))
+    webOrigins             = optional(list(string))
   })
   default = {}
 }

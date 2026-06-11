@@ -78,6 +78,11 @@ spec:
                     type: array
                     items:
                       type: string
+                  postLogoutRedirectUris:
+                    description: A list of valid URIs a browser is permitted to redirect to after a successful logout (RP-initiated logout via the end_session_endpoint). Simple wildcards are allowed. Use '+' to reuse redirectUris, or '-' to allow none.
+                    type: array
+                    items:
+                      type: string
                   webOrigins:
                     description: A list of allowed CORS origins. To permit all origins of Valid Redirect URIs add '+'. To permit all origins add '*'.
                     type: array
