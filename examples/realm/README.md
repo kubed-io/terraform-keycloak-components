@@ -43,3 +43,7 @@ spec. Omit `spec.smtp` entirely and no SMTP/env is configured.
 
 Authentication **flow bindings** (`browser_flow`, etc.) are intentionally out of scope —
 use the dedicated `keycloak_authentication_bindings` sub-resource for those.
+
+---
+
+[module](../../modules/realm) · [CRD](../../crd/realm) · [↑ top-level README](../../README.md)

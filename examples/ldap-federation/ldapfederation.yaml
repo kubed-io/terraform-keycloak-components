@@ -1,0 +1,66 @@
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: LdapFederation
+metadata:
+  name: company-ldap
+spec:
+  realm: kubed
+  connectionUrl: ldap://lldap.connect.svc.cluster.local:3890
+  vendor: OTHER
+
+  # Drop Keycloak's read-only default mappers so only the declared ones exist.
+  deleteDefaultMappers: true
+
+  # Bind DN + credential are sourced from a Secret (keys `dn` and `password`),
+  # wired into TF_VAR_bind_dn / TF_VAR_bind_credential by the composition — they
+  # never appear in the spec.
+  bindSecretRef:
+    name: keycloak-ldap-creds
+    namespace: auth
+
+  # --- Sync ---
+  syncSettings:
+    importEnabled: true
+    fullSyncPeriod: 604800 # 1 week
+    batchSize: 1000
+    pagination: true
+
+  # --- Mappers ---
+  mappers:
+  # Exactly one `user` mapper is required — it feeds the federation itself.
+  - name: users
+    type: user
+    user:
+      baseDn: ou=people,dc=kubed,dc=io
+      objectClasses:
+      - inetOrgPerson
+      - person
+      usernameAttribute: uid
+      rdnAttribute: uid
+      uuidAttribute: uid
+      mode: READ_ONLY
+
+  # Map the LDAP `mail` attribute onto the Keycloak email field.
+  - name: email
+    type: userAttribute
+    userAttribute:
+      ldapAttribute: mail
+      userModelAttribute: email
+
+  # Combine first/last name from a single LDAP attribute.
+  - name: full-name
+    type: fullName
+    fullName:
+      attribute: cn
+      readOnly: true
+
+  # Import LDAP groups under ou=groups into Keycloak groups.
+  - name: groups
+    type: group
+    group:
+      baseDn: ou=groups,dc=kubed,dc=io
+      nameAttribute: cn
+      objectClasses:
+      - groupOfNames
+      membershipUserAttribute: uid
+      membershipAttributeType: DN
+      mode: READ_ONLY

@@ -135,3 +135,4 @@ every tab, plus the matching `Realm` composite resource.
 ## References
 
 - Provider — [`keycloak_realm`][provider]
+- This repo — [CRD](../../crd/realm) · [example](../../examples/realm) · [↑ top-level README](../../README.md)

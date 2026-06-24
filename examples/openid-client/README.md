@@ -1,6 +1,9 @@
 # OpenID Client CRD Example
 
-This example demonstrates how to create an OpenID Connect client in Keycloak using the Crossplane CRD.
+This example demonstrates how to create an OpenID Connect client in Keycloak using the
+Crossplane CRD. For the full field reference see the
+[openid-client module](../../modules/openid-client); for the CRD itself see
+[crd/openid-client](../../crd/openid-client).
 
 ## Simple Client Example
 
@@ -215,3 +218,7 @@ For service account clients, you can also get the service account user ID:
 ```bash
 kubectl get openidclient my-service-client -o jsonpath='{.status.serviceAccountUserId}'
 ```
+
+---
+
+[module](../../modules/openid-client) · [CRD](../../crd/openid-client) · [↑ top-level README](../../README.md)
