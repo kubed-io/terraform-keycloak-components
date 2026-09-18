@@ -41,6 +41,10 @@ run "ldap_mapper_resolves_guid_and_is_client_scoped" {
     target = data.http.federation
     values = { response_body = "[{\"id\":\"FED-GUID-1\",\"name\":\"my-realm\"}]" }
   }
+  override_data {
+    target = data.http.role_sync
+    values = { status_code = 200 }
+  }
 
   assert {
     condition     = keycloak_ldap_role_mapper.this["app client roles"].ldap_user_federation_id == "FED-GUID-1"
@@ -53,6 +57,23 @@ run "ldap_mapper_resolves_guid_and_is_client_scoped" {
   assert {
     condition     = keycloak_ldap_role_mapper.this["app client roles"].ldap_roles_dn == "cn=myapp,ou=clients,dc=example"
     error_message = "baseDn should map to ldap_roles_dn"
+  }
+  # the mapper is force-synced so its roles exist before anyone logs in
+  assert {
+    condition     = length(data.http.role_sync) == 1
+    error_message = "each ldap role mapper should get exactly one fedToKeycloak sync call"
+  }
+  assert {
+    condition     = strcontains(data.http.role_sync["app client roles"].url, "/user-storage/FED-GUID-1/mappers/")
+    error_message = "the sync must target the resolved federation GUID"
+  }
+  assert {
+    condition     = endswith(data.http.role_sync["app client roles"].url, "/sync?direction=fedToKeycloak")
+    error_message = "the sync must import LDAP -> Keycloak, not the reverse"
+  }
+  assert {
+    condition     = data.http.role_sync["app client roles"].method == "POST"
+    error_message = "the sync endpoint is a POST"
   }
   # one token call + one federation lookup
   assert {
@@ -90,6 +111,10 @@ run "federation_lookup_deduped_by_name" {
     target = data.http.federation
     values = { response_body = "[{\"id\":\"FED-GUID-1\"}]" }
   }
+  override_data {
+    target = data.http.role_sync
+    values = { status_code = 200 }
+  }
 
   assert {
     condition     = length(data.http.federation) == 1
@@ -98,6 +123,11 @@ run "federation_lookup_deduped_by_name" {
   assert {
     condition     = length(keycloak_ldap_role_mapper.this) == 2
     error_message = "still two distinct role mappers"
+  }
+  # the federation lookup dedupes, the sync does NOT — every mapper needs its own import
+  assert {
+    condition     = length(data.http.role_sync) == 2
+    error_message = "two mappers sharing a federation still need one sync call each"
   }
 }
 
@@ -120,6 +150,10 @@ run "no_ldap_is_inert" {
     condition     = length(keycloak_ldap_role_mapper.this) == 0
     error_message = "no ldap role mappers"
   }
+  assert {
+    condition     = length(data.http.role_sync) == 0
+    error_message = "no sync calls when there are no ldap mappers"
+  }
 }
 
 # Generic mappers need no http/creds at all.
@@ -136,6 +170,10 @@ run "generic_mapper_no_http" {
   assert {
     condition     = length(data.http.token) == 0
     error_message = "generic-only mappers must not trigger the token call"
+  }
+  assert {
+    condition     = length(data.http.role_sync) == 0
+    error_message = "generic-only mappers must not trigger a sync"
   }
   assert {
     condition     = keycloak_generic_role_mapper.this["scope my role"].role_id == "some-role-uuid"

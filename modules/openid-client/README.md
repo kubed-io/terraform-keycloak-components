@@ -88,6 +88,11 @@ A `set` of role mappers attached to **this** client, each with a `type`:
   **name** (defaults to the realm name); the module resolves its GUID over the Admin REST
   API. This is what makes `var.creds` relevant (below).
 
+  Each `ldap` mapper is then force-synced (`fedToKeycloak`) on every apply, because an
+  `LDAP_ONLY` mapper otherwise materialises a client role only when a user who already
+  holds it logs in — so a new role is never grantable. Import-only: a role deleted from
+  LDAP is not removed from Keycloak.
+
 ### Admin credentials for LDAP role mappers (`creds`, sensitive)
 
 Only used when a `role_mappers` element of type `ldap` is declared — the keycloak provider
