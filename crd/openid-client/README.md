@@ -33,7 +33,6 @@ metadata:
   name: my-app
 spec:
   realm: master
-  id: my-app
   accessType: CONFIDENTIAL
   accessSettings:
     redirectUris:

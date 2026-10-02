@@ -45,7 +45,7 @@ spec:
                 description: When true, organization support is enabled.
                 type: boolean
               adminPermissionsEnabled:
-                description: Enables fine-grained admin permissions (v2).
+                description: Enables fine-grained admin permissions (v2). When true, OpenidClient `permissions` (v1) fail on this realm.
                 type: boolean
               internalId:
                 description: Override the realm's internal ID (defaults to the realm name).
@@ -57,16 +57,6 @@ spec:
                 description: Custom realm attributes (also where General fields like frontendUrl live).
                 type: object
                 additionalProperties:
-                  type: string
-              defaultDefaultClientScopes:
-                description: Default 'default' client scopes for new clients.
-                type: array
-                items:
-                  type: string
-              defaultOptionalClientScopes:
-                description: Default 'optional' client scopes for new clients.
-                type: array
-                items:
                   type: string
 
               # --- Realm Settings → Themes ---
@@ -298,8 +288,13 @@ spec:
                         type: string
                       authenticatorAttachment:
                         type: string
-                      requireResidentKey:
+                      discoverableCredential:
                         type: string
+                        enum:
+                        - not specified
+                        - required
+                        - preferred
+                        - discouraged
                       userVerificationRequirement:
                         type: string
                       createTimeout:
@@ -329,8 +324,13 @@ spec:
                         type: string
                       authenticatorAttachment:
                         type: string
-                      requireResidentKey:
+                      discoverableCredential:
                         type: string
+                        enum:
+                        - not specified
+                        - required
+                        - preferred
+                        - discouraged
                       userVerificationRequirement:
                         type: string
                       createTimeout:
@@ -347,6 +347,79 @@ spec:
                           type: string
                       passwordlessPasskeysEnabled:
                         type: boolean
+
+              # --- Realm Settings → Events ---
+              events:
+                description: Event listeners, user events and admin events. Unset leaves Keycloak's config untouched; removing it later resets the config.
+                type: object
+                properties:
+                  eventsListeners:
+                    description: Event listeners to send events to. Replaces the whole list; defaults to jboss-logging.
+                    type: array
+                    items:
+                      type: string
+                  eventsEnabled:
+                    description: Save user events to the database.
+                    type: boolean
+                  eventsExpiration:
+                    description: Seconds to keep saved user events; 0 keeps them forever.
+                    type: integer
+                  enabledEventTypes:
+                    description: User event types to save. Empty saves all types.
+                    type: array
+                    items:
+                      type: string
+                  adminEventsEnabled:
+                    description: Save admin events to the database.
+                    type: boolean
+                  adminEventsDetailsEnabled:
+                    description: Include the request representation in saved admin events.
+                    type: boolean
+
+              # --- Clients → Client registration ---
+              clientRegistration:
+                description: Client registration access policies to create. Keycloak's built-in policies stay and every policy must pass.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  - providerId
+                  - subType
+                  properties:
+                    name:
+                      description: Display name of the policy, unique per subType.
+                      type: string
+                    providerId:
+                      description: Policy provider, e.g. trusted-hosts, max-clients, consent-required, scope, allowed-client-templates, allowed-protocol-mappers.
+                      type: string
+                    subType:
+                      description: Which registration the policy applies to.
+                      type: string
+                      enum:
+                      - anonymous
+                      - authenticated
+                    config:
+                      description: Provider-specific settings. Multi-value keys are comma-separated, e.g. trusted-hosts.
+                      type: object
+                      additionalProperties:
+                        type: string
+
+              # --- Client scopes → realm defaults ---
+              clientScopes:
+                description: Client scopes assigned to every new client. Each list is authoritative when set.
+                type: object
+                properties:
+                  default:
+                    description: Client scope names every new client gets as default scopes.
+                    type: array
+                    items:
+                      type: string
+                  optional:
+                    description: Client scope names every new client gets as optional scopes.
+                    type: array
+                    items:
+                      type: string
 
           status:
             description: A Status represents the observed state

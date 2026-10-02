@@ -18,9 +18,42 @@ mock_provider "keycloak" {
 run "invalid_access_type" {
   command = plan
   variables {
-    id               = "test-client"
-    realm            = "my-realm"
-    access_type      = "INVALID"
+    id          = "test-client"
+    realm       = "my-realm"
+    access_type = "INVALID"
   }
   expect_failures = [var.access_type]
+}
+
+run "invalid_pkce_method" {
+  command = plan
+  variables {
+    id           = "test-client"
+    realm        = "my-realm"
+    access_type  = "CONFIDENTIAL"
+    capabilities = { pkceCodeChallengeMethod = "S512" }
+  }
+  expect_failures = [var.capabilities]
+}
+
+run "invalid_policy_enforcement_mode" {
+  command = plan
+  variables {
+    id            = "test-client"
+    realm         = "my-realm"
+    access_type   = "CONFIDENTIAL"
+    authorization = { policyEnforcementMode = "STRICT" }
+  }
+  expect_failures = [var.authorization]
+}
+
+run "invalid_permission_scope" {
+  command = plan
+  variables {
+    id          = "test-client"
+    realm       = "my-realm"
+    access_type = "CONFIDENTIAL"
+    permissions = [{ scope = "delete" }]
+  }
+  expect_failures = [var.permissions]
 }

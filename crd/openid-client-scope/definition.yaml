@@ -1,0 +1,385 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: openidclientscopes.keycloak.kubed.io
+spec:
+  scope: Cluster
+  group: keycloak.kubed.io
+  names:
+    kind: OpenidClientScope
+    plural: openidclientscopes
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - realm
+            properties:
+              realm:
+                description: The realm in which to create the client scope.
+                type: string
+              name:
+                description: The scope name clients request and tokens carry in `scope`. Defaults to metadata.name.
+                type: string
+              description:
+                description: Description shown in the GUI.
+                type: string
+              consentScreenText:
+                description: Text shown for this scope on the consent screen. When unset, the scope is not shown there.
+                type: string
+              includeInTokenScope:
+                description: Add the scope name to the token's `scope` claim and the introspection response. Keycloak default true.
+                type: boolean
+              includeInOpenidProviderMetadata:
+                description: List the scope in `scopes_supported` of the realm's OpenID discovery document. Keycloak default true.
+                type: boolean
+              guiOrder:
+                description: Display order in the GUI, such as on the consent page.
+                type: integer
+              extraConfig:
+                description: Extra client scope attributes passed through verbatim.
+                type: object
+                additionalProperties:
+                  type: string
+              protocolMappers:
+                description: Protocol mappers on this client scope. Same shape as OpenidClient's protocolMappers; each attaches to the scope.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  - type
+                  properties:
+                    name:
+                      description: The display name of this mapper when displayed in the console.
+                      type: string
+                    type:
+                      description: |
+                        The type of protocol mapper. Must be one of:
+                        - audience: Add an audience to the token
+                        - audienceResolve: Resolve audience automatically
+                        - fullName: Map user's full name
+                        - groupMembership: Map user group membership
+                        - hardcodedClaim: Add a hardcoded claim
+                        - hardcodedRole: Add a hardcoded role
+                        - sub: Map subject claim
+                        - userAttribute: Map user attribute
+                        - userClientRole: Map user client role
+                        - userProperty: Map user property
+                        - userRealmRole: Map user realm role
+                        - userSessionNote: Map user session note
+                      type: string
+                      enum:
+                      - audience
+                      - audienceResolve
+                      - fullName
+                      - groupMembership
+                      - hardcodedClaim
+                      - hardcodedRole
+                      - sub
+                      - userAttribute
+                      - userClientRole
+                      - userProperty
+                      - userRealmRole
+                      - userSessionNote
+                    audienceResolve:
+                      description: Configuration for audienceResolve mapper (no additional properties needed).
+                      type: object
+                    audience:
+                      description: Configuration for audience mapper.
+                      type: object
+                      properties:
+                        includedClient:
+                          description: Client ID to include in the audience.
+                          type: string
+                        includedCustom:
+                          description: Custom audience value to include.
+                          type: string
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToTokenIntrospection:
+                          description: When true, the audience is added to the token introspection response.
+                          type: boolean
+                    fullName:
+                      description: Configuration for fullName mapper.
+                      type: object
+                      properties:
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    groupMembership:
+                      description: Configuration for groupMembership mapper.
+                      type: object
+                      required:
+                      - claimName
+                      properties:
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        fullPath:
+                          description: When true, group paths will be fully qualified (e.g., /parent/child).
+                          type: boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    hardcodedClaim:
+                      description: Configuration for hardcodedClaim mapper.
+                      type: object
+                      required:
+                      - name
+                      - value
+                      properties:
+                        name:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        value:
+                          description: The hardcoded value of the claim.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    hardcodedRole:
+                      description: Configuration for hardcodedRole mapper.
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          description: The name of the role to add.
+                          type: string
+                    sub:
+                      description: Configuration for sub (subject) mapper.
+                      type: object
+                      properties:
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToTokenIntrospection:
+                          description: When true, the claim is added to the token introspection response.
+                          type: boolean
+                    userAttribute:
+                      description: Configuration for userAttribute mapper.
+                      type: object
+                      required:
+                      - name
+                      - claimName
+                      properties:
+                        name:
+                          description:  (Required) The custom user attribute to map a claim for.
+                          type: string
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        aggregate:
+                          description: When true, the attribute values will be aggregated with the group attributes.
+                          type: boolean
+                        multivalued:
+                          description: When true, the attribute is treated as a multivalued attribute.
+                          type: boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    userClientRole:
+                      description: Configuration for userClientRole mapper.
+                      type: object
+                      required:
+                      - claimName
+                      properties:
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        clientIdForRoleMappings:
+                          description: The client ID for role mappings. If not specified, the current client is used.
+                          type: string
+                        prefix:
+                          description: A prefix to add to each role.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        multivalued:
+                          description: When true, the attribute is treated as a multivalued attribute.
+                          type: boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    userProperty:
+                      description: Configuration for userProperty mapper.
+                      type: object
+                      required:
+                      - name
+                      - claimName
+                      properties:
+                        name:
+                          description: The name of the user property to map (e.g., username, email, firstName, lastName).
+                          type: string
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                    userRealmRole:
+                      description: Configuration for userRealmRole mapper.
+                      type: object
+                      required:
+                      - claimName
+                      properties:
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        realmRolePrefix:
+                          description: A prefix to add to each realm role.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        multivalued:
+                          description: When true, the attribute is treated as a multivalued attribute.
+                          type: boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToUserinfo:
+                          description: When true, the claim is added to the userinfo response.
+                          type: boolean
+                        addToTokenIntrospection:
+                          description: When true, the claim is added to the token introspection response.
+                          type: boolean
+                    userSessionNote:
+                      description: Configuration for userSessionNote mapper.
+                      type: object
+                      required:
+                      - name
+                      - claimName
+                      properties:
+                        name:
+                          description: The name of the user session note to map.
+                          type: string
+                        claimName:
+                          description: The name of the claim to insert into the token.
+                          type: string
+                        valueType:
+                          description: The claim type used when serializing JSON tokens. Can be one of String, JSON, long, int, or boolean. Defaults to String.
+                          type: string
+                          enum:
+                          - String
+                          - JSON
+                          - long
+                          - int
+                          - boolean
+                        addToIdToken:
+                          description: When true, the claim is added to the ID token.
+                          type: boolean
+                        addToAccessToken:
+                          description: When true, the claim is added to the access token.
+                          type: boolean
+              roles:
+                description: Roles assigned on the scope's Scope tab, by name. Set client (its clientId) for a client role; leave it unset for a realm role.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  properties:
+                    name:
+                      description: The role name.
+                      type: string
+                    client:
+                      description: The clientId owning the role. Unset means a realm role.
+                      type: string
+          status:
+            description: A Status represents the observed state
+            type: object
+            properties:
+              clientScopeId:
+                description: The client scope's Keycloak ID.
+                type: string

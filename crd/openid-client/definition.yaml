@@ -39,6 +39,9 @@ spec:
                 description: If enabled, the client will always be listed in the client list in the account console even if the user does not have an active session.
                 type: boolean
                 default: false
+              fullScopeAllowed:
+                description: Include all of the user's role mappings in tokens. When false, only roles in this client's scope mappings are included.
+                type: boolean
               accessType:
                 description: |
                   Specifies the type of client. Can be one of the following:
@@ -151,6 +154,45 @@ spec:
                   backchannelLogoutRevokeOfflineSessions:
                     description: When true, a backchannel logout will also revoke offline sessions.
                     type: boolean
+              tokens:
+                description: Advanced settings — per-client token and session lifespans in seconds, overriding the realm's, plus DPoP.
+                type: object
+                properties:
+                  accessTokenLifespan:
+                    type: string
+                  clientSessionIdleTimeout:
+                    type: string
+                  clientSessionMaxLifespan:
+                    type: string
+                  clientOfflineSessionIdleTimeout:
+                    type: string
+                  clientOfflineSessionMaxLifespan:
+                    type: string
+                  oauth2DeviceCodeLifespan:
+                    type: string
+                  oauth2DevicePollingInterval:
+                    type: string
+                  requireDpopBoundTokens:
+                    description: Require DPoP (proof-of-possession) bound tokens.
+                    type: boolean
+              compatibility:
+                description: OpenID Connect Compatibility Modes.
+                type: object
+                properties:
+                  excludeSessionStateFromAuthResponse:
+                    type: boolean
+                  excludeIssuerFromAuthResponse:
+                    description: Leave iss out of the authentication response.
+                    type: boolean
+                  useRefreshTokens:
+                    type: boolean
+                  useRefreshTokensClientCredentials:
+                    type: boolean
+                  allowRefreshTokenInStandardTokenExchange:
+                    type: string
+                    enum:
+                    - NO
+                    - SAME_SESSION
               authorization:
                 description: When this block is present, fine-grained authorization will be enabled for this client. The client's accessType must be CONFIDENTIAL, and serviceAccountsEnabled must be true. Requires Keycloak 12+.
                 type: object
@@ -255,6 +297,9 @@ spec:
                           type: boolean
                         addToAccessToken:
                           description: When true, the claim is added to the access token.
+                          type: boolean
+                        addToTokenIntrospection:
+                          description: When true, the audience is added to the token introspection response.
                           type: boolean
                     fullName:
                       description: Configuration for fullName mapper.
@@ -508,6 +553,20 @@ spec:
                         addToAccessToken:
                           description: When true, the claim is added to the access token.
                           type: boolean
+              serviceAccountRoles:
+                description: Roles given to this client's service account, by name. Set client (its clientId) for a client role; leave it unset for a realm role. Needs accessType CONFIDENTIAL and capabilities.serviceAccountsEnabled.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  properties:
+                    name:
+                      description: The role name.
+                      type: string
+                    client:
+                      description: The clientId owning the role. Unset means a realm role.
+                      type: string
               roleMappers:
                 description: |
                   Role mappers attached to this client. Each has a `type` with a matching
@@ -591,6 +650,7 @@ spec:
               permissions:
                 description: |
                   Client permissions configuration. This is part of a preview Keycloak feature for fine-grained permissions.
+                  These are fine-grained permissions v1: they fail on a realm with adminPermissionsEnabled (v2).
                   When enabling OpenID Client Permissions, Keycloak automatically creates scopes for view, manage, configure, 
                   map-roles, map-roles-client-scope, map-roles-composite, and token-exchange.
                 type: array

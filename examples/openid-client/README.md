@@ -14,7 +14,6 @@ metadata:
   name: my-web-app
 spec:
   realm: master
-  id: my-web-app
   accessType: CONFIDENTIAL
   enabled: true
   description: "My Web Application"
@@ -38,7 +37,6 @@ metadata:
   name: my-service-client
 spec:
   realm: master
-  id: my-service-client
   accessType: CONFIDENTIAL
   enabled: true
   capabilities:
@@ -70,7 +68,6 @@ metadata:
   name: my-protected-client
 spec:
   realm: master
-  id: my-protected-client
   accessType: CONFIDENTIAL
   enabled: true
   capabilities:
@@ -100,7 +97,6 @@ metadata:
   name: my-scoped-client
 spec:
   realm: master
-  id: my-scoped-client
   accessType: PUBLIC
   enabled: true
   accessSettings:
@@ -126,7 +122,6 @@ metadata:
   name: full-featured-client
 spec:
   realm: production
-  id: full-featured-client
   name: "Full Featured Application"
   description: "A complete example with all features"
   enabled: true

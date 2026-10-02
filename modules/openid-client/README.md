@@ -3,7 +3,7 @@
 Creates and manages a Keycloak **OpenID Connect client** and everything attached to it:
 access settings, OAuth2 capabilities, login/logout behavior, fine-grained authorization &
 permissions, client scopes, the full set of protocol mappers, and client-scoped role
-mappers. Wraps [`keycloak_openid_client`][client] (provider **5.8.0**) and its companion
+mappers. Wraps [`keycloak_openid_client`][client] (provider **5.9.0**) and its companion
 resources ([`_protocol_mapper`][mapper], [`_default/optional_client_scopes`][scopes],
 [`_client_permissions`][perms], [`_generic_role_mapper`][generic-rm] /
 [`_ldap_role_mapper`][ldap-rm]).
@@ -45,6 +45,7 @@ output (sensitive); it is not a settable input.
 | `enabled` | bool | `true` | Whether the client is enabled. |
 | `description` | string | `null` | Description shown in the GUI. |
 | `always_display_in_console` | bool | `false` | List in the Account UI even without an active session. |
+| `full_scope_allowed` | bool | `null` | Include all of the user's role mappings in tokens; `false` limits them to this client's scope mappings. |
 | `extra_config` | map(string) | `null` | Advanced OIDC settings passed through verbatim. |
 
 ### Grouped objects
@@ -55,6 +56,8 @@ output (sensitive); it is not a settable input.
 | `capabilities` | Capability config | `standardFlowEnabled`, `implicitFlowEnabled`, `directAccessGrantsEnabled`, `serviceAccountsEnabled`, `standardTokenExchangeEnabled`, `oauth2DeviceAuthorizationGrantEnabled`, `pkceCodeChallengeMethod` (`plain`\|`S256`) |
 | `login` | Login settings | `theme`, `consentRequired`, `displayOnConsentScreen`, `consentScreentText` |
 | `logout` | Logout settings | `frontChannelLogoutEnabled`, `backchannelLogoutUrl`, `frontchannelLogoutUrl`, `backchannelLogoutSessionRequired`, `backchannelLogoutRevokeOfflineSessions` |
+| `tokens` | Advanced → Advanced settings | `accessTokenLifespan`, `clientSessionIdleTimeout`, `clientSessionMaxLifespan`, `clientOfflineSessionIdleTimeout`, `clientOfflineSessionMaxLifespan`, `oauth2DeviceCodeLifespan`, `oauth2DevicePollingInterval` (all seconds, as strings), `requireDpopBoundTokens` |
+| `compatibility` | Advanced → OpenID Connect Compatibility Modes | `excludeSessionStateFromAuthResponse`, `excludeIssuerFromAuthResponse`, `useRefreshTokens`, `useRefreshTokensClientCredentials`, `allowRefreshTokenInStandardTokenExchange` (`NO`\|`SAME_SESSION`) |
 | `authorization` | Authorization (`null` ⇒ off) | `policyEnforcementMode`* (`ENFORCING`\|`PERMISSIVE`\|`DISABLED`), `decisionStrategy`, `allowRemoteResourceManagement`, `keepDefaults` |
 | `scopes` | Client scopes | `default` (always included), `optional` (user can consent) |
 
@@ -76,6 +79,24 @@ A `set` of fine-grained scope permissions for the client (Keycloak token-exchang
 feature). Each element: `scope` (one of `view`, `manage`, `configure`, `map-roles`,
 `map-roles-client-scope`, `map-roles-composite`, `token-exchange`), `policies`,
 `decisionStrategy`, `description`. `null` (the default) leaves permissions unmanaged.
+These are fine-grained permissions **v1**: they fail on a realm whose `admin_permissions_enabled` (v2) is true.
+
+### Service account roles (`service_account_roles`)
+
+Roles given to this client's service account (the *Service account roles* tab), by name.
+Leave `client` unset for a realm role, or give the owning client's `clientId` for a client
+role:
+
+```hcl
+service_account_roles = [
+  { name = "foo" },                       # realm role
+  { name = "viewer", client = "grafana" }, # client role of grafana
+]
+```
+
+Needs `access_type = "CONFIDENTIAL"` and `capabilities.serviceAccountsEnabled = true`. Other
+clients are looked up by `clientId`, so they must already exist; a role of this client
+itself needs no lookup.
 
 ### Role mappers (`role_mappers`)
 

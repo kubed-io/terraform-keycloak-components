@@ -9,15 +9,13 @@ variables {
 run "general_top_level" {
   command = plan
   variables {
-    ssl_required                   = "external"
-    user_managed_access            = true
-    organizations_enabled          = true
-    admin_permissions_enabled      = true
-    internal_id                    = "fixed-internal-id"
-    terraform_deletion_protection  = true
-    attributes                     = { frontendUrl = "https://auth.example.com" }
-    default_default_client_scopes  = ["profile", "email"]
-    default_optional_client_scopes = ["address", "phone"]
+    ssl_required                  = "external"
+    user_managed_access           = true
+    organizations_enabled         = true
+    admin_permissions_enabled     = true
+    internal_id                   = "fixed-internal-id"
+    terraform_deletion_protection = true
+    attributes                    = { frontendUrl = "https://auth.example.com" }
   }
 
   assert {
@@ -48,11 +46,6 @@ run "general_top_level" {
   assert {
     condition     = keycloak_realm.this.attributes["frontendUrl"] == "https://auth.example.com"
     error_message = "Expected the frontendUrl attribute to be set."
-  }
-
-  assert {
-    condition     = length(keycloak_realm.this.default_default_client_scopes) == 2
-    error_message = "Expected two default default client scopes."
   }
 }
 

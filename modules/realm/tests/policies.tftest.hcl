@@ -70,6 +70,7 @@ run "web_authn_policy" {
         relyingPartyEntityName = "Example"
         relyingPartyId         = "auth.example.com"
         signatureAlgorithms    = ["ES256", "RS256"]
+        discoverableCredential = "preferred"
       }
     }
   }
@@ -87,6 +88,11 @@ run "web_authn_policy" {
   assert {
     condition     = length(keycloak_realm.this.web_authn_policy[0].signature_algorithms) == 2
     error_message = "Expected two signature algorithms."
+  }
+
+  assert {
+    condition     = keycloak_realm.this.web_authn_policy[0].discoverable_credential == "preferred"
+    error_message = "Expected discoverable_credential to be 'preferred'."
   }
 }
 

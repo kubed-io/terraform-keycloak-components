@@ -13,9 +13,6 @@ resource "keycloak_realm" "this" {
   terraform_deletion_protection = var.terraform_deletion_protection
   attributes                    = var.attributes
 
-  default_default_client_scopes  = var.default_default_client_scopes
-  default_optional_client_scopes = var.default_optional_client_scopes
-
   # --- Themes ---
   login_theme   = var.themes.loginTheme
   account_theme = var.themes.accountTheme
@@ -60,7 +57,11 @@ resource "keycloak_realm" "this" {
 
   # --- Email / SMTP (single nested block; auth creds from sensitive vars) ---
   dynamic "smtp_server" {
-    for_each = var.smtp != null ? [var.smtp] : []
+    for_each = (
+      var.smtp != null
+      ? [var.smtp]
+      : []
+    )
     content {
       host                  = smtp_server.value.host
       port                  = smtp_server.value.port
@@ -74,7 +75,11 @@ resource "keycloak_realm" "this" {
       allow_utf8            = smtp_server.value.allowUtf8
 
       dynamic "auth" {
-        for_each = var.smtp_username != null ? [1] : []
+        for_each = (
+          var.smtp_username != null
+          ? [1]
+          : []
+        )
         content {
           username = var.smtp_username
           password = var.smtp_password
@@ -85,7 +90,11 @@ resource "keycloak_realm" "this" {
 
   # --- Localization / internationalization ---
   dynamic "internationalization" {
-    for_each = var.internationalization != null ? [var.internationalization] : []
+    for_each = (
+      var.internationalization != null
+      ? [var.internationalization]
+      : []
+    )
     content {
       supported_locales = internationalization.value.supportedLocales
       default_locale    = internationalization.value.defaultLocale
@@ -94,11 +103,18 @@ resource "keycloak_realm" "this" {
 
   # --- Security Defenses (headers + brute force) ---
   dynamic "security_defenses" {
-    for_each = (var.security_defenses.headers != null ||
-    var.security_defenses.bruteForceDetection != null) ? [var.security_defenses] : []
+    for_each = (
+      var.security_defenses.headers != null || var.security_defenses.bruteForceDetection != null
+      ? [var.security_defenses]
+      : []
+    )
     content {
       dynamic "headers" {
-        for_each = security_defenses.value.headers != null ? [security_defenses.value.headers] : []
+        for_each = (
+          security_defenses.value.headers != null
+          ? [security_defenses.value.headers]
+          : []
+        )
         content {
           x_frame_options                     = headers.value.xFrameOptions
           content_security_policy             = headers.value.contentSecurityPolicy
@@ -111,7 +127,11 @@ resource "keycloak_realm" "this" {
         }
       }
       dynamic "brute_force_detection" {
-        for_each = security_defenses.value.bruteForceDetection != null ? [security_defenses.value.bruteForceDetection] : []
+        for_each = (
+          security_defenses.value.bruteForceDetection != null
+          ? [security_defenses.value.bruteForceDetection]
+          : []
+        )
         content {
           permanent_lockout                = brute_force_detection.value.permanentLockout
           max_temporary_lockouts           = brute_force_detection.value.maxTemporaryLockouts
@@ -128,7 +148,11 @@ resource "keycloak_realm" "this" {
 
   # --- Authentication → Policies: OTP ---
   dynamic "otp_policy" {
-    for_each = var.policies.otpPolicy != null ? [var.policies.otpPolicy] : []
+    for_each = (
+      var.policies.otpPolicy != null
+      ? [var.policies.otpPolicy]
+      : []
+    )
     content {
       type              = otp_policy.value.type
       algorithm         = otp_policy.value.algorithm
@@ -142,14 +166,18 @@ resource "keycloak_realm" "this" {
 
   # --- Authentication → Policies: WebAuthn ---
   dynamic "web_authn_policy" {
-    for_each = var.policies.webAuthnPolicy != null ? [var.policies.webAuthnPolicy] : []
+    for_each = (
+      var.policies.webAuthnPolicy != null
+      ? [var.policies.webAuthnPolicy]
+      : []
+    )
     content {
       relying_party_entity_name         = web_authn_policy.value.relyingPartyEntityName
       relying_party_id                  = web_authn_policy.value.relyingPartyId
       signature_algorithms              = web_authn_policy.value.signatureAlgorithms
       attestation_conveyance_preference = web_authn_policy.value.attestationConveyancePreference
       authenticator_attachment          = web_authn_policy.value.authenticatorAttachment
-      require_resident_key              = web_authn_policy.value.requireResidentKey
+      discoverable_credential           = web_authn_policy.value.discoverableCredential
       user_verification_requirement     = web_authn_policy.value.userVerificationRequirement
       create_timeout                    = web_authn_policy.value.createTimeout
       avoid_same_authenticator_register = web_authn_policy.value.avoidSameAuthenticatorRegister
@@ -160,14 +188,18 @@ resource "keycloak_realm" "this" {
 
   # --- Authentication → Policies: WebAuthn Passwordless ---
   dynamic "web_authn_passwordless_policy" {
-    for_each = var.policies.webAuthnPasswordlessPolicy != null ? [var.policies.webAuthnPasswordlessPolicy] : []
+    for_each = (
+      var.policies.webAuthnPasswordlessPolicy != null
+      ? [var.policies.webAuthnPasswordlessPolicy]
+      : []
+    )
     content {
       relying_party_entity_name         = web_authn_passwordless_policy.value.relyingPartyEntityName
       relying_party_id                  = web_authn_passwordless_policy.value.relyingPartyId
       signature_algorithms              = web_authn_passwordless_policy.value.signatureAlgorithms
       attestation_conveyance_preference = web_authn_passwordless_policy.value.attestationConveyancePreference
       authenticator_attachment          = web_authn_passwordless_policy.value.authenticatorAttachment
-      require_resident_key              = web_authn_passwordless_policy.value.requireResidentKey
+      discoverable_credential           = web_authn_passwordless_policy.value.discoverableCredential
       user_verification_requirement     = web_authn_passwordless_policy.value.userVerificationRequirement
       create_timeout                    = web_authn_passwordless_policy.value.createTimeout
       avoid_same_authenticator_register = web_authn_passwordless_policy.value.avoidSameAuthenticatorRegister

@@ -34,6 +34,12 @@ variable "always_display_in_console" {
   default     = false
 }
 
+variable "full_scope_allowed" {
+  description = "Client scopes → dedicated scope → Scope: include all of the user's role mappings in tokens. When false, only roles in this client's scope mappings are included."
+  type        = bool
+  default     = null
+}
+
 variable "access_type" {
   description = <<EOT
 Specifies the type of client, which can be one of the following:
@@ -87,7 +93,11 @@ variable "capabilities" {
     # try() is the null/absent guard: when pkceCodeChallengeMethod is null/unset the
     # contains() errors and falls back to true (null is allowed). Independent of `||`
     # short-circuit behavior, which differs across tofu versions during validation.
-    condition     = try(contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod), true)
+    condition = (
+      var.capabilities.pkceCodeChallengeMethod == null
+      ? true
+      : contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod)
+    )
     error_message = "pkceCodeChallengeMethod must be either 'plain', 'S256', or null."
   }
 }
@@ -115,6 +125,41 @@ variable "logout" {
   default = {}
 }
 
+variable "tokens" {
+  description = "Advanced → Advanced settings: per-client token and session lifespans (seconds) overriding the realm's, plus DPoP."
+  type = object({
+    accessTokenLifespan             = optional(string)
+    clientSessionIdleTimeout        = optional(string)
+    clientSessionMaxLifespan        = optional(string)
+    clientOfflineSessionIdleTimeout = optional(string)
+    clientOfflineSessionMaxLifespan = optional(string)
+    oauth2DeviceCodeLifespan        = optional(string)
+    oauth2DevicePollingInterval     = optional(string)
+    requireDpopBoundTokens          = optional(bool)
+  })
+  default = {}
+}
+
+variable "compatibility" {
+  description = "Advanced → OpenID Connect Compatibility Modes."
+  type = object({
+    excludeSessionStateFromAuthResponse      = optional(bool)
+    excludeIssuerFromAuthResponse            = optional(bool)
+    useRefreshTokens                         = optional(bool)
+    useRefreshTokensClientCredentials        = optional(bool)
+    allowRefreshTokenInStandardTokenExchange = optional(string) # NO | SAME_SESSION
+  })
+  default = {}
+  validation {
+    condition = (
+      var.compatibility.allowRefreshTokenInStandardTokenExchange == null
+      ? true
+      : contains(["NO", "SAME_SESSION"], var.compatibility.allowRefreshTokenInStandardTokenExchange)
+    )
+    error_message = "allowRefreshTokenInStandardTokenExchange must be NO or SAME_SESSION."
+  }
+}
+
 variable "authorization" {
   description = <<EOT
 (Optional) When this block is present, fine-grained authorization will be enabled for this client.
@@ -138,7 +183,11 @@ EOT
     # try() also serves as the null guard: when var.authorization is null the attribute
     # access errors and try() falls back to true (null is allowed). Avoids relying on
     # `||` short-circuiting, which differs across tofu versions during validation.
-    condition     = try(contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode), true)
+    condition = (
+      var.authorization == null
+      ? true
+      : contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode)
+    )
     error_message = "policyEnforcementMode must be one of: ENFORCING, PERMISSIVE, DISABLED."
   }
 }
@@ -155,7 +204,7 @@ variable "scopes" {
 A set of all of the client scopes for this client.
 EOF
   type = object({
-    default = optional(list(string))
+    default  = optional(list(string))
     optional = optional(list(string))
   })
   default = {}
@@ -165,16 +214,17 @@ variable "protocol_mappers" {
   description = <<EOF
 A set of all of the protocol mappers for this client. 
 EOF
-  default = []
+  default     = []
   type = set(object({
     name            = string
     type            = string
     audienceResolve = optional(object({}))
     audience = optional(object({
-      includedClient   = optional(string)
-      includedCustom   = optional(string)
-      addToIdToken     = optional(bool)
-      addToAccessToken = optional(bool)
+      includedClient          = optional(string)
+      includedCustom          = optional(string)
+      addToIdToken            = optional(bool)
+      addToAccessToken        = optional(bool)
+      addToTokenIntrospection = optional(bool)
     }))
     fullName = optional(object({
       addToIdToken     = optional(bool)
@@ -262,20 +312,29 @@ Create scopes "view", "manage", "configure", "map-roles", "map-roles-client-scop
 Create a resource representing the openid client
 Create all scope based permission for the scopes and openid client resource
 If the realm-management Authorization is not enable, you have to create a dependency (depends_on) with the policy and the openid client.
+
+These are fine-grained permissions v1: they fail on a realm with admin permissions (v2) enabled.
 EOT
   type = set(object({
-    scope = string
-    policies = optional(list(string))
-    description = optional(string)
+    scope            = string
+    policies         = optional(list(string))
+    description      = optional(string)
     decisionStrategy = optional(string)
   }))
-  default = null 
+  default  = null
   nullable = true
   # check each scope is allowed when set. try() is the null guard: iterating a null set
   # errors and falls back to true (null is allowed) — independent of `||` short-circuit
   # behavior, which differs across tofu versions during validation.
   validation {
-    condition     = try(alltrue([for p in var.permissions : contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)]), true)
+    condition = (
+      var.permissions == null
+      ? true
+      : alltrue([
+        for p in var.permissions :
+        contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)
+      ])
+    )
     error_message = "Each permission's scope must be one of: view, manage, configure, map-roles, map-roles-client-scope, map-roles-composite, token-exchange."
   }
 }
@@ -297,6 +356,28 @@ EOT
   })
   default   = {}
   sensitive = true
+}
+
+variable "service_account_roles" {
+  description = "Service account roles: roles given to this client's service account, by name. Set `client` (its clientId) for a client role; leave it null for a realm role."
+  type = list(object({
+    name   = string
+    client = optional(string, null)
+  }))
+  default = []
+
+  validation {
+    condition     = length(var.service_account_roles) == 0 || (var.access_type == "CONFIDENTIAL" && var.capabilities.serviceAccountsEnabled == true)
+    error_message = "service_account_roles needs access_type CONFIDENTIAL and capabilities.serviceAccountsEnabled = true."
+  }
+
+  validation {
+    condition = length(distinct([
+      for r in var.service_account_roles :
+      r.client == null ? r.name : "${r.client}/${r.name}"
+    ])) == length(var.service_account_roles)
+    error_message = "Each service account role must be listed once."
+  }
 }
 
 variable "role_mappers" {

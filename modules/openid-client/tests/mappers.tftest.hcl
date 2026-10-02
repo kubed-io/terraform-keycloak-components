@@ -7,9 +7,9 @@ mock_provider "keycloak" {
 }
 
 variables {
-  realm            = "my-realm"
-  id               = "test-client"
-  access_type      = "CONFIDENTIAL"
+  realm       = "my-realm"
+  id          = "test-client"
+  access_type = "CONFIDENTIAL"
 }
 
 run "with_audience_mapper" {
@@ -19,11 +19,17 @@ run "with_audience_mapper" {
       name = "audience-mapper"
       type = "audience"
       audience = {
-        includedClient   = "target-client"
-        addToIdToken     = true
-        addToAccessToken = true
+        includedClient          = "target-client"
+        addToIdToken            = true
+        addToAccessToken        = true
+        addToTokenIntrospection = false
       }
     }]
+  }
+
+  assert {
+    condition     = keycloak_openid_audience_protocol_mapper.this["audience-mapper"].add_to_token_introspection == false
+    error_message = "Expected add_to_token_introspection to be false."
   }
 
   assert {

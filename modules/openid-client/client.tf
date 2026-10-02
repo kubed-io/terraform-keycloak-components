@@ -8,6 +8,7 @@ resource "keycloak_openid_client" "this" {
 
   access_type               = var.access_type
   always_display_in_console = var.always_display_in_console
+  full_scope_allowed        = var.full_scope_allowed
 
   # Access Settings
   root_url                        = var.access_settings.rootUrl
@@ -22,6 +23,7 @@ resource "keycloak_openid_client" "this" {
   implicit_flow_enabled                      = var.capabilities.implicitFlowEnabled
   direct_access_grants_enabled               = var.capabilities.directAccessGrantsEnabled
   service_accounts_enabled                   = var.capabilities.serviceAccountsEnabled
+  standard_token_exchange_enabled            = var.capabilities.standardTokenExchangeEnabled
   oauth2_device_authorization_grant_enabled  = var.capabilities.oauth2DeviceAuthorizationGrantEnabled
   backchannel_logout_session_required        = var.logout.backchannelLogoutSessionRequired
   backchannel_logout_revoke_offline_sessions = var.logout.backchannelLogoutRevokeOfflineSessions
@@ -38,9 +40,30 @@ resource "keycloak_openid_client" "this" {
   backchannel_logout_url      = var.logout.backchannelLogoutUrl
   frontchannel_logout_url     = var.logout.frontchannelLogoutUrl
 
+  # Advanced → Advanced settings
+  access_token_lifespan               = var.tokens.accessTokenLifespan
+  client_session_idle_timeout         = var.tokens.clientSessionIdleTimeout
+  client_session_max_lifespan         = var.tokens.clientSessionMaxLifespan
+  client_offline_session_idle_timeout = var.tokens.clientOfflineSessionIdleTimeout
+  client_offline_session_max_lifespan = var.tokens.clientOfflineSessionMaxLifespan
+  oauth2_device_code_lifespan         = var.tokens.oauth2DeviceCodeLifespan
+  oauth2_device_polling_interval      = var.tokens.oauth2DevicePollingInterval
+  require_dpop_bound_tokens           = var.tokens.requireDpopBoundTokens
+
+  # Advanced → OpenID Connect Compatibility Modes
+  exclude_session_state_from_auth_response       = var.compatibility.excludeSessionStateFromAuthResponse
+  exclude_issuer_from_auth_response              = var.compatibility.excludeIssuerFromAuthResponse
+  use_refresh_tokens                             = var.compatibility.useRefreshTokens
+  use_refresh_tokens_client_credentials          = var.compatibility.useRefreshTokensClientCredentials
+  allow_refresh_token_in_standard_token_exchange = var.compatibility.allowRefreshTokenInStandardTokenExchange
+
   # Authorization
   dynamic "authorization" {
-    for_each = var.authorization != null ? [var.authorization] : []
+    for_each = (
+      var.authorization != null
+      ? [var.authorization]
+      : []
+    )
     content {
       policy_enforcement_mode          = authorization.value.policyEnforcementMode
       decision_strategy                = authorization.value.decisionStrategy

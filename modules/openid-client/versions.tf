@@ -1,9 +1,9 @@
 terraform {
-  required_version = ">= 1.4.4"
+  required_version = ">= 1.9.0"
   required_providers {
     keycloak = {
       source  = "keycloak/keycloak"
-      version = "5.8.0"
+      version = "5.9.0"
     }
     # Only used by LDAP-type role mappers: resolve an LDAP user-federation's GUID by
     # name via the Keycloak Admin REST `components` endpoint (the keycloak provider has

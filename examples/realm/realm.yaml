@@ -67,3 +67,35 @@ spec:
       signatureAlgorithms:
       - ES256
       - RS256
+      discoverableCredential: preferred
+
+  # --- Realm settings → Events ---
+  events:
+    eventsListeners:
+    - jboss-logging
+    eventsEnabled: true
+    eventsExpiration: 604800 # 1 week
+    adminEventsEnabled: true
+
+  # --- Clients → Client registration (adds to Keycloak's built-in policies) ---
+  clientRegistration:
+  - name: Local Trusted Hosts
+    providerId: trusted-hosts
+    subType: anonymous
+    config:
+      trusted-hosts: localhost,127.0.0.1
+      client-uris-must-match: "true"
+
+  # --- Client scopes → realm defaults (each list replaces Keycloak's) ---
+  clientScopes:
+    default:
+    - basic
+    - acr
+    - profile
+    - email
+    - roles
+    - web-origins
+    optional:
+    - offline_access
+    - address
+    - phone

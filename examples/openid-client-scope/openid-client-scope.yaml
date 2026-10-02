@@ -1,0 +1,30 @@
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClientScope
+metadata:
+  name: mcp
+spec:
+  realm: example
+  description: Access to MCP servers behind the gateway.
+  consentScreenText: Use your MCP tools
+  includeInTokenScope: true
+
+  # Realm role, then a client role of the `grafana` client
+  roles:
+  - name: offline_access
+  - name: viewer
+    client: grafana
+    
+  protocolMappers:
+  - name: mcp-audience
+    type: audience
+    audience:
+      includedCustom: https://mcp.example.com/mcp
+      addToIdToken: false
+      addToAccessToken: true
+  - name: groups
+    type: groupMembership
+    groupMembership:
+      claimName: groups
+      fullPath: false
+      addToAccessToken: true
+

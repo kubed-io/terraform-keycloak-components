@@ -2,7 +2,7 @@
 
 Creates and manages a Keycloak **LDAP user-federation** provider for a realm, plus the
 mappers that bind LDAP entries to Keycloak users, attributes, roles, and groups. Wraps
-[`keycloak_ldap_user_federation`][fed] (provider **5.8.0**) and its mapper resources
+[`keycloak_ldap_user_federation`][fed] (provider **5.9.0**) and its mapper resources
 ([`_ldap_user_attribute_mapper`][attr], [`_ldap_role_mapper`][role],
 [`_ldap_group_mapper`][group], [`_ldap_full_name_mapper`][fullname],
 [`_ldap_hardcoded_*`][hardcoded], [`_ldap_custom_mapper`][custom]).

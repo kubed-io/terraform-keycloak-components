@@ -3,7 +3,7 @@
 Creates and manages a **Keycloak realm** — the logical boundary that owns a realm's users,
 clients, roles, login behavior, token lifespans, email/SMTP, security defenses, and
 authentication policies. Wraps the [`keycloak_realm`][provider] resource (provider
-**5.8.0**) and exposes effectively its whole surface, **grouped by Keycloak admin-UI tab**:
+**5.9.0**) and exposes effectively its whole surface, **grouped by Keycloak admin-UI tab**:
 the inputs mirror what you see in *Realm settings* + *Authentication → Policies*, so a
 variable maps to the tab you'd edit by hand.
 
@@ -52,12 +52,10 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `ssl_required` | string | `null` | Require SSL: `none` \| `external` \| `all`. |
 | `user_managed_access` | bool | `null` | Allow users to manage their own resources. |
 | `organizations_enabled` | bool | `null` | Enable organization support. |
-| `admin_permissions_enabled` | bool | `null` | Fine-grained admin permissions (v2). |
+| `admin_permissions_enabled` | bool | `null` | Fine-grained admin permissions (v2). When true, openid-client `permissions` (v1) fail on this realm. |
 | `internal_id` | string | `null` | Override the realm's internal ID. |
 | `terraform_deletion_protection` | bool | `null` | When true, the realm can't be deleted. |
 | `attributes` | map(string) | `null` | Custom realm attributes (also General fields w/o a dedicated arg, e.g. frontendUrl). |
-| `default_default_client_scopes` | list(string) | `null` | Default *default* client scopes for new clients. |
-| `default_optional_client_scopes` | list(string) | `null` | Default *optional* client scopes for new clients. |
 
 ### Grouped tabs (object vars)
 
@@ -70,6 +68,9 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `security_defenses` | Realm settings → Security defenses | `headers{…8}`, `bruteForceDetection{…8}` (each sub-block independently gated) |
 | `internationalization` | Realm settings → Localization | `supportedLocales`*, `defaultLocale`* (`null` ⇒ no block) |
 | `policies` | Authentication → Policies | `passwordPolicy`, `otpPolicy{…}`, `webAuthnPolicy{…}`, `webAuthnPasswordlessPolicy{…}` |
+| `events` | Realm settings → Events | `eventsListeners` (default `["jboss-logging"]`, replaces the whole list), `eventsEnabled`, `eventsExpiration` (seconds), `enabledEventTypes` (empty ⇒ all), `adminEventsEnabled`, `adminEventsDetailsEnabled` — `null` ⇒ config untouched; removing it resets the config |
+| `client_registration` | Clients → Client registration | a list of `name`*, `providerId`*, `subType`* (`anonymous` \| `authenticated`), `config` — policies to **create**; Keycloak's built-in ones stay and every policy must pass |
+| `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
 
 \* required key when the group is supplied.
 

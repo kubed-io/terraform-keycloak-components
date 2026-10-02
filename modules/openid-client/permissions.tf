@@ -5,7 +5,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "view_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "view"
     ]
     content {
@@ -17,7 +17,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "manage_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "manage"
     ]
     content {
@@ -29,7 +29,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "configure_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "configure"
     ]
     content {
@@ -41,7 +41,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "map_roles_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "map-roles"
     ]
     content {
@@ -53,7 +53,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "map_roles_client_scope_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "map-roles-client-scope"
     ]
     content {
@@ -65,7 +65,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "map_roles_composite_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "map-roles-composite"
     ]
     content {
@@ -77,7 +77,7 @@ resource "keycloak_openid_client_permissions" "this" {
 
   dynamic "token_exchange_scope" {
     for_each = [
-      for p in var.permissions : p 
+      for p in var.permissions : p
       if p.scope == "token-exchange"
     ]
     content {

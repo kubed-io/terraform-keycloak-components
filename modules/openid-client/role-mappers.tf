@@ -11,7 +11,10 @@
 # LDAP role mappers → CLIENT roles of THIS client. Because the mapper is bound to this
 # client (client_id set), Keycloak requires use_realm_roles_mapping = false.
 resource "keycloak_ldap_role_mapper" "this" {
-  for_each = { for m in local.ldap_mappers : coalesce(m.name, m.type) => m }
+  for_each = {
+    for m in local.ldap_mappers :
+    coalesce(m.name, m.type) => m
+  }
 
   realm_id                = data.keycloak_realm.this.id
   ldap_user_federation_id = local.fed_guid[coalesce(each.value.ldap.federationId, var.realm)]
@@ -34,7 +37,10 @@ resource "keycloak_ldap_role_mapper" "this" {
 
 # Generic role mappers → add an existing role (by id) to THIS client's scope.
 resource "keycloak_generic_role_mapper" "this" {
-  for_each = { for m in local.generic_mappers : coalesce(m.name, m.type) => m }
+  for_each = {
+    for m in local.generic_mappers :
+    coalesce(m.name, m.type) => m
+  }
 
   realm_id  = data.keycloak_realm.this.id
   client_id = keycloak_openid_client.this.id

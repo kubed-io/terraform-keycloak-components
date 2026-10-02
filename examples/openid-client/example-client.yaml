@@ -5,7 +5,6 @@ metadata:
 spec:
   # Required fields
   realm: master
-  id: example-web-app
   accessType: CONFIDENTIAL
   
   # Optional basic settings
@@ -27,6 +26,18 @@ spec:
     directAccessGrantsEnabled: true
     pkceCodeChallengeMethod: S256
   
+  # Only roles from this client's scope mappings go into tokens
+  fullScopeAllowed: false
+
+  # Advanced settings - per-client lifespans in seconds
+  tokens:
+    accessTokenLifespan: "300"
+
+  # OpenID Connect compatibility modes
+  compatibility:
+    useRefreshTokens: true
+    excludeSessionStateFromAuthResponse: false
+
   # Client scopes
   scopes:
     default:

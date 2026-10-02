@@ -7,9 +7,9 @@ mock_provider "keycloak" {
 }
 
 variables {
-  realm            = "my-realm"
-  id               = "test-client"
-  access_type      = "CONFIDENTIAL"
+  realm       = "my-realm"
+  id          = "test-client"
+  access_type = "CONFIDENTIAL"
 }
 
 run "simple_openid_client" {
@@ -30,8 +30,8 @@ run "simple_openid_client" {
 run "client_with_custom_id" {
   command = plan
   variables {
-    id               = "custom-client-id"
-    name             = "Custom Client Name"
+    id   = "custom-client-id"
+    name = "Custom Client Name"
   }
 
   assert {
@@ -70,11 +70,17 @@ run "client_with_capabilities" {
   command = plan
   variables {
     capabilities = {
-      standardFlowEnabled       = true
-      directAccessGrantsEnabled = true
-      serviceAccountsEnabled    = true
-      pkceCodeChallengeMethod   = "S256"
+      standardFlowEnabled          = true
+      directAccessGrantsEnabled    = true
+      serviceAccountsEnabled       = true
+      standardTokenExchangeEnabled = true
+      pkceCodeChallengeMethod      = "S256"
     }
+  }
+
+  assert {
+    condition     = keycloak_openid_client.this.standard_token_exchange_enabled == true
+    error_message = "Expected standard_token_exchange_enabled to be true."
   }
 
   assert {

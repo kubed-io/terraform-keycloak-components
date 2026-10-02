@@ -1,7 +1,7 @@
 # Keycloak Components
 
 Reusable [Terraform]/[OpenTofu] modules that manage [Keycloak] objects through the
-[`keycloak/keycloak`][provider] provider (pinned **5.8.0**), each paired with a
+[`keycloak/keycloak`][provider] provider (pinned **5.9.0**), each paired with a
 [Crossplane] CRD so the same module can be driven two ways:
 
 - **Terraform / OpenTofu** — call a module under [`modules/`](modules) directly:
@@ -15,6 +15,7 @@ Reusable [Terraform]/[OpenTofu] modules that manage [Keycloak] objects through t
 | --- | --- | --- |
 | [realm](#realm) | `Realm` | A Keycloak realm and its settings (login, tokens, SMTP, security, policies). |
 | [openid-client](#openid-client) | `OpenidClient` | An OpenID Connect client, its mappers, scopes, permissions, and role mappers. |
+| [openid-client-scope](#openid-client-scope) | `OpenidClientScope` | A realm client scope, its protocol mappers, and its assigned roles. |
 | [ldap-federation](#ldap-federation) | `LdapFederation` | An LDAP user-federation provider and its attribute/role/group mappers. |
 
 All CRDs live in the `keycloak.kubed.io/v1alpha1` group.
@@ -35,6 +36,14 @@ client scopes, the full set of protocol mappers, and client-scoped role mappers.
 
 [module](modules/openid-client) · [CRD](crd/openid-client) · [example](examples/openid-client)
 
+### openid-client-scope
+
+Creates and manages an **OpenID Connect client scope**: a named set of claims and roles
+that clients request by name. It carries its own protocol mappers and role scope mappings,
+so every client that requests it gets the same claims.
+
+[module](modules/openid-client-scope) · [CRD](crd/openid-client-scope)
+
 ### ldap-federation
 
 Creates and manages an **LDAP user-federation** provider for a realm, plus its mappers
@@ -54,7 +63,7 @@ Sensitive inputs never appear in the spec: the Composition wires a referenced Se
 the workspace's `TF_VAR_*` env (e.g. the realm's SMTP creds, the federation's bind
 credential).
 
-Deploy all three with kustomize:
+Deploy all four with kustomize:
 
 ```sh
 kubectl apply -k crd
