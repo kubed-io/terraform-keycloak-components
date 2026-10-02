@@ -88,6 +88,11 @@ spec:
           fromFieldPath: spec.alwaysDisplayInConsole
           toFieldPath: spec.forProvider.varmap.always_display_in_console
 
+        # map fullScopeAllowed
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.fullScopeAllowed
+          toFieldPath: spec.forProvider.varmap.full_scope_allowed
+
         # map accessType
         - type: FromCompositeFieldPath
           fromFieldPath: spec.accessType
@@ -112,6 +117,14 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.logout
           toFieldPath: spec.forProvider.varmap.logout
+
+        # map tokens and compatibility (objects, no transformation needed)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.tokens
+          toFieldPath: spec.forProvider.varmap.tokens
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.compatibility
+          toFieldPath: spec.forProvider.varmap.compatibility
 
         # map authorization (object, no transformation needed for nested properties)
         - type: FromCompositeFieldPath

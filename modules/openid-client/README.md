@@ -45,6 +45,7 @@ output (sensitive); it is not a settable input.
 | `enabled` | bool | `true` | Whether the client is enabled. |
 | `description` | string | `null` | Description shown in the GUI. |
 | `always_display_in_console` | bool | `false` | List in the Account UI even without an active session. |
+| `full_scope_allowed` | bool | `null` | Include all of the user's role mappings in tokens; `false` limits them to this client's scope mappings. |
 | `extra_config` | map(string) | `null` | Advanced OIDC settings passed through verbatim. |
 
 ### Grouped objects
@@ -55,6 +56,8 @@ output (sensitive); it is not a settable input.
 | `capabilities` | Capability config | `standardFlowEnabled`, `implicitFlowEnabled`, `directAccessGrantsEnabled`, `serviceAccountsEnabled`, `standardTokenExchangeEnabled`, `oauth2DeviceAuthorizationGrantEnabled`, `pkceCodeChallengeMethod` (`plain`\|`S256`) |
 | `login` | Login settings | `theme`, `consentRequired`, `displayOnConsentScreen`, `consentScreentText` |
 | `logout` | Logout settings | `frontChannelLogoutEnabled`, `backchannelLogoutUrl`, `frontchannelLogoutUrl`, `backchannelLogoutSessionRequired`, `backchannelLogoutRevokeOfflineSessions` |
+| `tokens` | Advanced → Advanced settings | `accessTokenLifespan`, `clientSessionIdleTimeout`, `clientSessionMaxLifespan`, `clientOfflineSessionIdleTimeout`, `clientOfflineSessionMaxLifespan`, `oauth2DeviceCodeLifespan`, `oauth2DevicePollingInterval` (all seconds, as strings), `requireDpopBoundTokens` |
+| `compatibility` | Advanced → OpenID Connect Compatibility Modes | `excludeSessionStateFromAuthResponse`, `excludeIssuerFromAuthResponse`, `useRefreshTokens`, `useRefreshTokensClientCredentials`, `allowRefreshTokenInStandardTokenExchange` (`NO`\|`SAME_SESSION`) |
 | `authorization` | Authorization (`null` ⇒ off) | `policyEnforcementMode`* (`ENFORCING`\|`PERMISSIVE`\|`DISABLED`), `decisionStrategy`, `allowRemoteResourceManagement`, `keepDefaults` |
 | `scopes` | Client scopes | `default` (always included), `optional` (user can consent) |
 

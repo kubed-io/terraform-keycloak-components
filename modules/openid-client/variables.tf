@@ -34,6 +34,12 @@ variable "always_display_in_console" {
   default     = false
 }
 
+variable "full_scope_allowed" {
+  description = "Client scopes → dedicated scope → Scope: include all of the user's role mappings in tokens. When false, only roles in this client's scope mappings are included."
+  type        = bool
+  default     = null
+}
+
 variable "access_type" {
   description = <<EOT
 Specifies the type of client, which can be one of the following:
@@ -113,6 +119,37 @@ variable "logout" {
     backchannelLogoutRevokeOfflineSessions = optional(bool)
   })
   default = {}
+}
+
+variable "tokens" {
+  description = "Advanced → Advanced settings: per-client token and session lifespans (seconds) overriding the realm's, plus DPoP."
+  type = object({
+    accessTokenLifespan             = optional(string)
+    clientSessionIdleTimeout        = optional(string)
+    clientSessionMaxLifespan        = optional(string)
+    clientOfflineSessionIdleTimeout = optional(string)
+    clientOfflineSessionMaxLifespan = optional(string)
+    oauth2DeviceCodeLifespan        = optional(string)
+    oauth2DevicePollingInterval     = optional(string)
+    requireDpopBoundTokens          = optional(bool)
+  })
+  default = {}
+}
+
+variable "compatibility" {
+  description = "Advanced → OpenID Connect Compatibility Modes."
+  type = object({
+    excludeSessionStateFromAuthResponse      = optional(bool)
+    excludeIssuerFromAuthResponse            = optional(bool)
+    useRefreshTokens                         = optional(bool)
+    useRefreshTokensClientCredentials        = optional(bool)
+    allowRefreshTokenInStandardTokenExchange = optional(string) # NO | SAME_SESSION
+  })
+  default = {}
+  validation {
+    condition     = try(contains(["NO", "SAME_SESSION"], var.compatibility.allowRefreshTokenInStandardTokenExchange), true)
+    error_message = "allowRefreshTokenInStandardTokenExchange must be NO or SAME_SESSION."
+  }
 }
 
 variable "authorization" {
