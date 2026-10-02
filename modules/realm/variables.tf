@@ -255,14 +255,12 @@ variable "attributes" {
   default     = null
 }
 
-variable "default_default_client_scopes" {
-  description = "Default 'default' client scopes for new clients."
-  type        = list(string)
-  default     = null
-}
-
-variable "default_optional_client_scopes" {
-  description = "Default 'optional' client scopes for new clients."
-  type        = list(string)
-  default     = null
+# --- Client scopes → realm defaults (keycloak_realm_*_client_scopes) ---
+variable "client_scopes" {
+  description = "Client scopes assigned to every new client. Each list is authoritative when set; null leaves Keycloak's defaults."
+  type = object({
+    default  = optional(list(string), null)
+    optional = optional(list(string), null)
+  })
+  default = {}
 }

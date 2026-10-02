@@ -13,9 +13,6 @@ resource "keycloak_realm" "this" {
   terraform_deletion_protection = var.terraform_deletion_protection
   attributes                    = var.attributes
 
-  default_default_client_scopes  = var.default_default_client_scopes
-  default_optional_client_scopes = var.default_optional_client_scopes
-
   # --- Themes ---
   login_theme   = var.themes.loginTheme
   account_theme = var.themes.accountTheme

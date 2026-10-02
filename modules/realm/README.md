@@ -56,8 +56,6 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `internal_id` | string | `null` | Override the realm's internal ID. |
 | `terraform_deletion_protection` | bool | `null` | When true, the realm can't be deleted. |
 | `attributes` | map(string) | `null` | Custom realm attributes (also General fields w/o a dedicated arg, e.g. frontendUrl). |
-| `default_default_client_scopes` | list(string) | `null` | Default *default* client scopes for new clients. |
-| `default_optional_client_scopes` | list(string) | `null` | Default *optional* client scopes for new clients. |
 
 ### Grouped tabs (object vars)
 
@@ -70,6 +68,7 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `security_defenses` | Realm settings → Security defenses | `headers{…8}`, `bruteForceDetection{…8}` (each sub-block independently gated) |
 | `internationalization` | Realm settings → Localization | `supportedLocales`*, `defaultLocale`* (`null` ⇒ no block) |
 | `policies` | Authentication → Policies | `passwordPolicy`, `otpPolicy{…}`, `webAuthnPolicy{…}`, `webAuthnPasswordlessPolicy{…}` |
+| `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
 
 \* required key when the group is supplied.
 

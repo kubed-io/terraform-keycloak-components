@@ -58,16 +58,6 @@ spec:
                 type: object
                 additionalProperties:
                   type: string
-              defaultDefaultClientScopes:
-                description: Default 'default' client scopes for new clients.
-                type: array
-                items:
-                  type: string
-              defaultOptionalClientScopes:
-                description: Default 'optional' client scopes for new clients.
-                type: array
-                items:
-                  type: string
 
               # --- Realm Settings → Themes ---
               themes:
@@ -347,6 +337,22 @@ spec:
                           type: string
                       passwordlessPasskeysEnabled:
                         type: boolean
+
+              # --- Client scopes → realm defaults ---
+              clientScopes:
+                description: Client scopes assigned to every new client. Each list is authoritative when set.
+                type: object
+                properties:
+                  default:
+                    description: Client scope names every new client gets as default scopes.
+                    type: array
+                    items:
+                      type: string
+                  optional:
+                    description: Client scope names every new client gets as optional scopes.
+                    type: array
+                    items:
+                      type: string
 
           status:
             description: A Status represents the observed state

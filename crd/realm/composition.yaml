@@ -110,12 +110,6 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.attributes
           toFieldPath: spec.forProvider.varmap.attributes
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.defaultDefaultClientScopes
-          toFieldPath: spec.forProvider.varmap.default_default_client_scopes
-        - type: FromCompositeFieldPath
-          fromFieldPath: spec.defaultOptionalClientScopes
-          toFieldPath: spec.forProvider.varmap.default_optional_client_scopes
 
         # --- grouped tabs: map the whole nested object straight to its var ---
         # (inner keys stay camelCase, matching the module's object var keys)
@@ -137,6 +131,9 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.policies
           toFieldPath: spec.forProvider.varmap.policies
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.clientScopes
+          toFieldPath: spec.forProvider.varmap.client_scopes
 
         # --- SMTP: mapped field-by-field so the credentialsRef (handled via env,
         # below) is NOT passed into the module's smtp object var ---
