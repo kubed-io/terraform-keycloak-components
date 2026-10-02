@@ -18,9 +18,9 @@ mock_provider "keycloak" {
 run "invalid_access_type" {
   command = plan
   variables {
-    id               = "test-client"
-    realm            = "my-realm"
-    access_type      = "INVALID"
+    id          = "test-client"
+    realm       = "my-realm"
+    access_type = "INVALID"
   }
   expect_failures = [var.access_type]
 }

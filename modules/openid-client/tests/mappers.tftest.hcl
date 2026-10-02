@@ -7,9 +7,9 @@ mock_provider "keycloak" {
 }
 
 variables {
-  realm            = "my-realm"
-  id               = "test-client"
-  access_type      = "CONFIDENTIAL"
+  realm       = "my-realm"
+  id          = "test-client"
+  access_type = "CONFIDENTIAL"
 }
 
 run "with_audience_mapper" {

@@ -155,7 +155,7 @@ variable "scopes" {
 A set of all of the client scopes for this client.
 EOF
   type = object({
-    default = optional(list(string))
+    default  = optional(list(string))
     optional = optional(list(string))
   })
   default = {}
@@ -165,7 +165,7 @@ variable "protocol_mappers" {
   description = <<EOF
 A set of all of the protocol mappers for this client. 
 EOF
-  default = []
+  default     = []
   type = set(object({
     name            = string
     type            = string
@@ -266,12 +266,12 @@ If the realm-management Authorization is not enable, you have to create a depend
 These are fine-grained permissions v1: they fail on a realm with admin permissions (v2) enabled.
 EOT
   type = set(object({
-    scope = string
-    policies = optional(list(string))
-    description = optional(string)
+    scope            = string
+    policies         = optional(list(string))
+    description      = optional(string)
     decisionStrategy = optional(string)
   }))
-  default = null 
+  default  = null
   nullable = true
   # check each scope is allowed when set. try() is the null guard: iterating a null set
   # errors and falls back to true (null is allowed) — independent of `||` short-circuit
