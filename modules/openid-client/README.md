@@ -81,6 +81,23 @@ feature). Each element: `scope` (one of `view`, `manage`, `configure`, `map-role
 `decisionStrategy`, `description`. `null` (the default) leaves permissions unmanaged.
 These are fine-grained permissions **v1**: they fail on a realm whose `admin_permissions_enabled` (v2) is true.
 
+### Service account roles (`service_account_roles`)
+
+Roles given to this client's service account (the *Service account roles* tab), by name.
+Leave `client` unset for a realm role, or give the owning client's `clientId` for a client
+role:
+
+```hcl
+service_account_roles = [
+  { name = "foo" },                       # realm role
+  { name = "viewer", client = "grafana" }, # client role of grafana
+]
+```
+
+Needs `access_type = "CONFIDENTIAL"` and `capabilities.serviceAccountsEnabled = true`. Other
+clients are looked up by `clientId`, so they must already exist; a role of this client
+itself needs no lookup.
+
 ### Role mappers (`role_mappers`)
 
 A `set` of role mappers attached to **this** client, each with a `type`:

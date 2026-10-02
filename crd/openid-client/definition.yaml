@@ -550,6 +550,20 @@ spec:
                         addToAccessToken:
                           description: When true, the claim is added to the access token.
                           type: boolean
+              serviceAccountRoles:
+                description: Roles given to this client's service account, by name. Set client (its clientId) for a client role; leave it unset for a realm role. Needs accessType CONFIDENTIAL and capabilities.serviceAccountsEnabled.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  properties:
+                    name:
+                      description: The role name.
+                      type: string
+                    client:
+                      description: The clientId owning the role. Unset means a realm role.
+                      type: string
               roleMappers:
                 description: |
                   Role mappers attached to this client. Each has a `type` with a matching

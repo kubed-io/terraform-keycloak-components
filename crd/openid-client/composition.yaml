@@ -153,6 +153,11 @@ spec:
           fromFieldPath: spec.roleMappers
           toFieldPath: spec.forProvider.varmap.role_mappers
 
+        # map serviceAccountRoles
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.serviceAccountRoles
+          toFieldPath: spec.forProvider.varmap.service_account_roles
+
         # map permissions
         - type: FromCompositeFieldPath
           fromFieldPath: spec.permissions

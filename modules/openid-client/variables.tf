@@ -338,6 +338,25 @@ EOT
   sensitive = true
 }
 
+variable "service_account_roles" {
+  description = "Service account roles: roles given to this client's service account, by name. Set `client` (its clientId) for a client role; leave it null for a realm role."
+  type = list(object({
+    name   = string
+    client = optional(string, null)
+  }))
+  default = []
+
+  validation {
+    condition     = length(var.service_account_roles) == 0 || (var.access_type == "CONFIDENTIAL" && var.capabilities.serviceAccountsEnabled == true)
+    error_message = "service_account_roles needs access_type CONFIDENTIAL and capabilities.serviceAccountsEnabled = true."
+  }
+
+  validation {
+    condition     = length(distinct([for r in var.service_account_roles : r.client == null ? r.name : "${r.client}/${r.name}"])) == length(var.service_account_roles)
+    error_message = "Each service account role must be listed once."
+  }
+}
+
 variable "role_mappers" {
   description = <<EOT
 Role mappers attached to THIS client. Each has a `type` with a matching sub-object:
