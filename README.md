@@ -1,7 +1,7 @@
 # Keycloak Components
 
 Reusable [Terraform]/[OpenTofu] modules that manage [Keycloak] objects through the
-[`keycloak/keycloak`][provider] provider (pinned **5.8.0**), each paired with a
+[`keycloak/keycloak`][provider] provider (pinned **5.9.0**), each paired with a
 [Crossplane] CRD so the same module can be driven two ways:
 
 - **Terraform / OpenTofu** — call a module under [`modules/`](modules) directly:

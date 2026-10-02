@@ -3,7 +3,7 @@
 Creates and manages a Keycloak **OpenID Connect client** and everything attached to it:
 access settings, OAuth2 capabilities, login/logout behavior, fine-grained authorization &
 permissions, client scopes, the full set of protocol mappers, and client-scoped role
-mappers. Wraps [`keycloak_openid_client`][client] (provider **5.8.0**) and its companion
+mappers. Wraps [`keycloak_openid_client`][client] (provider **5.9.0**) and its companion
 resources ([`_protocol_mapper`][mapper], [`_default/optional_client_scopes`][scopes],
 [`_client_permissions`][perms], [`_generic_role_mapper`][generic-rm] /
 [`_ldap_role_mapper`][ldap-rm]).

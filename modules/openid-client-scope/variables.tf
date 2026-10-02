@@ -55,10 +55,11 @@ EOF
     type            = string
     audienceResolve = optional(object({}))
     audience = optional(object({
-      includedClient   = optional(string)
-      includedCustom   = optional(string)
-      addToIdToken     = optional(bool)
-      addToAccessToken = optional(bool)
+      includedClient          = optional(string)
+      includedCustom          = optional(string)
+      addToIdToken            = optional(bool)
+      addToAccessToken        = optional(bool)
+      addToTokenIntrospection = optional(bool)
     }))
     fullName = optional(object({
       addToIdToken     = optional(bool)

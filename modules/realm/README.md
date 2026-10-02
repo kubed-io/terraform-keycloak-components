@@ -3,7 +3,7 @@
 Creates and manages a **Keycloak realm** — the logical boundary that owns a realm's users,
 clients, roles, login behavior, token lifespans, email/SMTP, security defenses, and
 authentication policies. Wraps the [`keycloak_realm`][provider] resource (provider
-**5.8.0**) and exposes effectively its whole surface, **grouped by Keycloak admin-UI tab**:
+**5.9.0**) and exposes effectively its whole surface, **grouped by Keycloak admin-UI tab**:
 the inputs mirror what you see in *Realm settings* + *Authentication → Policies*, so a
 variable maps to the tab you'd edit by hand.
 

@@ -3,13 +3,14 @@ resource "keycloak_openid_audience_protocol_mapper" "this" {
     for mapper in var.protocol_mappers : mapper.name => mapper
     if mapper.type == "audience"
   }
-  realm_id                 = data.keycloak_realm.this.id
-  client_id                = keycloak_openid_client.this.id
-  name                     = each.value.name
-  included_client_audience = each.value.audience.includedClient
-  included_custom_audience = each.value.audience.includedCustom
-  add_to_id_token          = each.value.audience.addToIdToken
-  add_to_access_token      = each.value.audience.addToAccessToken
+  realm_id                   = data.keycloak_realm.this.id
+  client_id                  = keycloak_openid_client.this.id
+  name                       = each.value.name
+  included_client_audience   = each.value.audience.includedClient
+  included_custom_audience   = each.value.audience.includedCustom
+  add_to_id_token            = each.value.audience.addToIdToken
+  add_to_access_token        = each.value.audience.addToAccessToken
+  add_to_token_introspection = each.value.audience.addToTokenIntrospection
 }
 
 resource "keycloak_openid_audience_resolve_protocol_mapper" "this" {
