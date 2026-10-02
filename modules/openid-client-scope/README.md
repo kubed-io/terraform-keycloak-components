@@ -6,7 +6,8 @@ roles that clients request by name in `scope`. Wraps
 
 A client scope is owned by the API it describes, not by the clients that use it. Clients
 attach it by name through openid-client's `scopes`; a realm hands it to every new client
-through its `client_scopes`. This module only creates the scope.
+through its `client_scopes`. The scope carries its own protocol mappers and role scope
+mappings, so every client that requests it gets the same claims.
 
 [scope]: https://registry.terraform.io/providers/keycloak/keycloak/latest/docs/resources/openid_client_scope
 
@@ -24,6 +25,20 @@ Every input mirrors the client scope's **Settings** tab, so they are flat.
 | `include_in_openid_provider_metadata` | bool | `null` (provider: `true`) | List the scope in discovery's `scopes_supported`. |
 | `gui_order` | number | `null` | Display order in the GUI and on the consent page. |
 | `extra_config` | map(string) | `null` | Extra attributes passed through verbatim. |
+
+### Protocol mappers (`protocol_mappers`)
+
+A `set` where each element has a `name`, a `type`, and a sub-object named after the type:
+`audience`, `audienceResolve`, `fullName`, `groupMembership`, `hardcodedClaim`,
+`hardcodedRole`, `sub`, `userAttribute`, `userClientRole`, `userProperty`, `userRealmRole`,
+`userSessionNote`. The shape matches openid-client's `protocol_mappers`; here every mapper
+attaches to the scope (`client_scope_id`). An unknown type or a missing sub-object is
+rejected.
+
+### Role scope mappings (`role_mappers`)
+
+A `set` of `{ roleId }`: realm or client roles added to the scope's **Scope** tab, keyed
+by role ID. Unlike openid-client there are no LDAP role mappers; those belong to a client.
 
 ## Outputs
 
@@ -43,5 +58,11 @@ module "mcp_scope" {
   description            = "Access to MCP servers behind the gateway."
   consent_screen_text    = "Use your MCP tools"
   include_in_token_scope = true
+
+  protocol_mappers = [{
+    name     = "mcp-audience"
+    type     = "audience"
+    audience = { includedCustom = "https://mcp.kellyferrone.com/mcp", addToIdToken = false }
+  }]
 }
 ```

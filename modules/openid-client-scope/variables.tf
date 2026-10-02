@@ -44,3 +44,108 @@ variable "extra_config" {
   type        = map(string)
   default     = null
 }
+
+variable "protocol_mappers" {
+  description = <<EOF
+Protocol mappers on this client scope. Each has a `type` with a matching sub-object.
+EOF
+  default     = []
+  type = set(object({
+    name            = string
+    type            = string
+    audienceResolve = optional(object({}))
+    audience = optional(object({
+      includedClient   = optional(string)
+      includedCustom   = optional(string)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+    }))
+    fullName = optional(object({
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+      addToUserinfo    = optional(bool)
+    }))
+    groupMembership = optional(object({
+      claimName        = string
+      fullPath         = optional(bool)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+      addToUserinfo    = optional(bool)
+    }))
+    hardcodedClaim = optional(object({
+      name             = string # claim_name
+      value            = string
+      valueType        = optional(string)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+      addToUserinfo    = optional(bool)
+    }))
+    hardcodedRole = optional(object({
+      name = string
+    }))
+    sub = optional(object({
+      addToAccessToken        = optional(bool)
+      addToTokenIntrospection = optional(bool)
+    }))
+    userAttribute = optional(object({
+      name             = string # user_attribute
+      claimName        = string
+      valueType        = optional(string)
+      aggregate        = optional(bool) # aggregate_attributes
+      multivalued      = optional(bool)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+      addToUserinfo    = optional(bool)
+    }))
+    userClientRole = optional(object({
+      claimName               = string
+      clientIdForRoleMappings = optional(string)
+      prefix                  = optional(string) # client_role_prefix
+      valueType               = optional(string)
+      multivalued             = optional(bool)
+      addToIdToken            = optional(bool)
+      addToAccessToken        = optional(bool)
+      addToUserinfo           = optional(bool)
+    }))
+    userProperty = optional(object({
+      name             = string # user_property
+      claimName        = string
+      valueType        = optional(string)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+      addToUserinfo    = optional(bool)
+    }))
+    userRealmRole = optional(object({
+      claimName               = string
+      realmRolePrefix         = optional(string)
+      valueType               = optional(string)
+      multivalued             = optional(bool)
+      addToIdToken            = optional(bool)
+      addToAccessToken        = optional(bool)
+      addToUserinfo           = optional(bool)
+      addToTokenIntrospection = optional(bool)
+    }))
+    userSessionNote = optional(object({
+      name             = string # session_note
+      claimName        = string
+      valueType        = optional(string)
+      addToIdToken     = optional(bool)
+      addToAccessToken = optional(bool)
+    }))
+  }))
+
+  validation {
+    condition = alltrue([
+      for m in var.protocol_mappers : contains(["audience", "audienceResolve", "fullName", "groupMembership", "hardcodedClaim", "hardcodedRole", "sub", "userAttribute", "userClientRole", "userProperty", "userRealmRole", "userSessionNote"], m.type) && m[m.type] != null
+    ])
+    error_message = "Each protocol mapper needs a known type and a non-null sub-object matching it."
+  }
+}
+
+variable "role_mappers" {
+  description = "Client scope → Scope: realm or client roles (by role ID) added to this scope's role scope mappings."
+  type = set(object({
+    roleId = string
+  }))
+  default = []
+}
