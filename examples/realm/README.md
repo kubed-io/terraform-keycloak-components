@@ -2,7 +2,8 @@
 
 A full-featured Keycloak realm exercising every tab the [`realm`](../../modules/realm)
 module exposes — General, Themes, Login, Tokens/Sessions, Email/SMTP, Security Defenses,
-Localization, and Authentication → Policies (password / OTP / WebAuthn).
+Localization, Events, Authentication → Policies (password / OTP / WebAuthn), Client
+registration, and the realm's default client scopes.
 
 ```sh
 tofu init
@@ -40,6 +41,9 @@ spec. Omit `spec.smtp` entirely and no SMTP/env is configured.
 | Realm settings → Security defenses | `securityDefenses` |
 | Realm settings → Localization | `internationalization` |
 | Authentication → Policies   | `policies` (`passwordPolicy`, `otpPolicy`, `webAuthnPolicy`, `webAuthnPasswordlessPolicy`) |
+| Realm settings → Events     | `events`                |
+| Clients → Client registration | `clientRegistration` (adds policies; Keycloak's built-in ones stay) |
+| Client scopes → realm defaults | `clientScopes` (`default`, `optional` — each list replaces Keycloak's) |
 
 Authentication **flow bindings** (`browser_flow`, etc.) are intentionally out of scope —
 use the dedicated `keycloak_authentication_bindings` sub-resource for those.

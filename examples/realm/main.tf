@@ -2,7 +2,7 @@ terraform {
   required_providers {
     keycloak = {
       source  = "keycloak/keycloak"
-      version = "5.8.0"
+      version = "5.9.0"
     }
   }
 }
@@ -87,7 +87,35 @@ module "realm" {
       relyingPartyEntityName = "Kelly Ferrone"
       relyingPartyId         = "auth.kellyferrone.com"
       signatureAlgorithms    = ["ES256", "RS256"]
+      discoverableCredential = "preferred"
     }
+  }
+
+  # --- Realm settings → Events ---
+  events = {
+    eventsListeners    = ["jboss-logging"]
+    eventsEnabled      = true
+    eventsExpiration   = 604800 # 1 week
+    adminEventsEnabled = true
+  }
+
+  # --- Clients → Client registration (adds to Keycloak's built-in policies) ---
+  client_registration = [
+    {
+      name       = "Local Trusted Hosts"
+      providerId = "trusted-hosts"
+      subType    = "anonymous"
+      config = {
+        "trusted-hosts"          = "localhost,127.0.0.1"
+        "client-uris-must-match" = "true"
+      }
+    },
+  ]
+
+  # --- Client scopes → realm defaults (each list replaces Keycloak's) ---
+  client_scopes = {
+    default  = ["basic", "acr", "profile", "email", "roles", "web-origins"]
+    optional = ["offline_access", "address", "phone"]
   }
 }
 
