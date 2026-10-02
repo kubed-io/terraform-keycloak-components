@@ -20,8 +20,8 @@ provider "keycloak" {
 module "realm" {
   source = "../../modules/realm"
 
-  name         = "kellyferrone"
-  display_name = "Kelly Ferrone"
+  name         = "example"
+  display_name = "Example"
 
   # --- General ---
   ssl_required        = "external"
@@ -53,8 +53,8 @@ module "realm" {
   smtp = {
     host            = "docker-mailserver.connect.svc.cluster.local"
     port            = 587
-    from            = "noreply@mail.kellyferrone.com"
-    fromDisplayName = "Kelly Ferrone"
+    from            = "noreply@mail.example.com"
+    fromDisplayName = "Example"
     starttls        = true
   }
   smtp_username = "keycloak" # in-cluster: from the SA/SMTP credentials Secret
@@ -84,8 +84,8 @@ module "realm" {
       period    = 30
     }
     webAuthnPolicy = {
-      relyingPartyEntityName = "Kelly Ferrone"
-      relyingPartyId         = "auth.kellyferrone.com"
+      relyingPartyEntityName = "Example"
+      relyingPartyId         = "auth.example.com"
       signatureAlgorithms    = ["ES256", "RS256"]
       discoverableCredential = "preferred"
     }

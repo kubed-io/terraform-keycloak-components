@@ -27,14 +27,14 @@ kind: OpenidClientScope
 metadata:
   name: mcp
 spec:
-  realm: kellyferrone
+  realm: example
   description: Access to MCP servers behind the gateway.
   consentScreenText: Use your MCP tools
   protocolMappers:
   - name: mcp-audience
     type: audience
     audience:
-      includedCustom: https://mcp.kellyferrone.com/mcp
+      includedCustom: https://mcp.example.com/mcp
       addToIdToken: false
   roles:
   - name: mcp-user

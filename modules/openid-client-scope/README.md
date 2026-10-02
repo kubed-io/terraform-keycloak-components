@@ -64,7 +64,7 @@ mappers; those belong to a client.
 module "mcp_scope" {
   source = "git::https://github.com/kubed-io/terraform-keycloak-components.git//modules/openid-client-scope?ref=main"
 
-  realm                  = "kellyferrone"
+  realm                  = "example"
   name                   = "mcp"
   description            = "Access to MCP servers behind the gateway."
   consent_screen_text    = "Use your MCP tools"
@@ -73,7 +73,7 @@ module "mcp_scope" {
   protocol_mappers = [{
     name     = "mcp-audience"
     type     = "audience"
-    audience = { includedCustom = "https://mcp.kellyferrone.com/mcp", addToIdToken = false }
+    audience = { includedCustom = "https://mcp.example.com/mcp", addToIdToken = false }
   }]
 }
 ```

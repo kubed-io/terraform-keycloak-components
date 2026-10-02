@@ -19,7 +19,7 @@ provider "keycloak" {
 module "mcp_scope" {
   source = "../../modules/openid-client-scope"
 
-  realm                  = "kellyferrone"
+  realm                  = "example"
   name                   = "mcp"
   description            = "Access to MCP servers behind the gateway."
   consent_screen_text    = "Use your MCP tools"
@@ -30,7 +30,7 @@ module "mcp_scope" {
       name = "mcp-audience"
       type = "audience"
       audience = {
-        includedCustom   = "https://mcp.kellyferrone.com/mcp"
+        includedCustom   = "https://mcp.example.com/mcp"
         addToIdToken     = false
         addToAccessToken = true
       }
