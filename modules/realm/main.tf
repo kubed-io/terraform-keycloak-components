@@ -146,7 +146,7 @@ resource "keycloak_realm" "this" {
       signature_algorithms              = web_authn_policy.value.signatureAlgorithms
       attestation_conveyance_preference = web_authn_policy.value.attestationConveyancePreference
       authenticator_attachment          = web_authn_policy.value.authenticatorAttachment
-      require_resident_key              = web_authn_policy.value.requireResidentKey
+      discoverable_credential           = web_authn_policy.value.discoverableCredential
       user_verification_requirement     = web_authn_policy.value.userVerificationRequirement
       create_timeout                    = web_authn_policy.value.createTimeout
       avoid_same_authenticator_register = web_authn_policy.value.avoidSameAuthenticatorRegister
@@ -164,7 +164,7 @@ resource "keycloak_realm" "this" {
       signature_algorithms              = web_authn_passwordless_policy.value.signatureAlgorithms
       attestation_conveyance_preference = web_authn_passwordless_policy.value.attestationConveyancePreference
       authenticator_attachment          = web_authn_passwordless_policy.value.authenticatorAttachment
-      require_resident_key              = web_authn_passwordless_policy.value.requireResidentKey
+      discoverable_credential           = web_authn_passwordless_policy.value.discoverableCredential
       user_verification_requirement     = web_authn_passwordless_policy.value.userVerificationRequirement
       create_timeout                    = web_authn_passwordless_policy.value.createTimeout
       avoid_same_authenticator_register = web_authn_passwordless_policy.value.avoidSameAuthenticatorRegister

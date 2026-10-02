@@ -182,7 +182,7 @@ variable "policies" {
       signatureAlgorithms             = optional(list(string), null)
       attestationConveyancePreference = optional(string, null)
       authenticatorAttachment         = optional(string, null)
-      requireResidentKey              = optional(string, null)
+      discoverableCredential          = optional(string, null) # not specified | required | preferred | discouraged
       userVerificationRequirement     = optional(string, null)
       createTimeout                   = optional(number, null)
       avoidSameAuthenticatorRegister  = optional(bool, null)
@@ -195,7 +195,7 @@ variable "policies" {
       signatureAlgorithms             = optional(list(string), null)
       attestationConveyancePreference = optional(string, null)
       authenticatorAttachment         = optional(string, null)
-      requireResidentKey              = optional(string, null)
+      discoverableCredential          = optional(string, null) # not specified | required | preferred | discouraged
       userVerificationRequirement     = optional(string, null)
       createTimeout                   = optional(number, null)
       avoidSameAuthenticatorRegister  = optional(bool, null)
@@ -232,7 +232,7 @@ variable "organizations_enabled" {
 }
 
 variable "admin_permissions_enabled" {
-  description = "General: Admin Permissions (fine-grained permissions v2)."
+  description = "General: Admin Permissions (fine-grained permissions v2). When true, openid-client `permissions` (v1) fail on this realm."
   type        = bool
   default     = null
 }
@@ -253,6 +253,28 @@ variable "attributes" {
   description = "Custom realm attributes (also where General fields like frontendUrl live)."
   type        = map(string)
   default     = null
+}
+
+# --- Clients → Client registration (anonymous / authenticated access policies) ---
+variable "client_registration" {
+  description = "Clients → Client registration: access policies to create. Keycloak's built-in policies stay and every policy must pass."
+  type = list(object({
+    name       = string
+    providerId = string                      # trusted-hosts | max-clients | consent-required | scope | allowed-client-templates | allowed-protocol-mappers | …
+    subType    = string                      # anonymous | authenticated
+    config     = optional(map(string), null) # multi-value keys are comma-separated, e.g. "trusted-hosts" = "localhost,127.0.0.1"
+  }))
+  default = []
+
+  validation {
+    condition     = alltrue([for p in var.client_registration : contains(["anonymous", "authenticated"], p.subType)])
+    error_message = "client_registration subType must be anonymous or authenticated."
+  }
+
+  validation {
+    condition     = length(distinct([for p in var.client_registration : "${p.subType}/${p.name}"])) == length(var.client_registration)
+    error_message = "client_registration names must be unique per subType."
+  }
 }
 
 # --- Client scopes → realm defaults (keycloak_realm_*_client_scopes) ---

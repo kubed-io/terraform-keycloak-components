@@ -52,7 +52,7 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `ssl_required` | string | `null` | Require SSL: `none` \| `external` \| `all`. |
 | `user_managed_access` | bool | `null` | Allow users to manage their own resources. |
 | `organizations_enabled` | bool | `null` | Enable organization support. |
-| `admin_permissions_enabled` | bool | `null` | Fine-grained admin permissions (v2). |
+| `admin_permissions_enabled` | bool | `null` | Fine-grained admin permissions (v2). When true, openid-client `permissions` (v1) fail on this realm. |
 | `internal_id` | string | `null` | Override the realm's internal ID. |
 | `terraform_deletion_protection` | bool | `null` | When true, the realm can't be deleted. |
 | `attributes` | map(string) | `null` | Custom realm attributes (also General fields w/o a dedicated arg, e.g. frontendUrl). |
@@ -68,6 +68,7 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `security_defenses` | Realm settings → Security defenses | `headers{…8}`, `bruteForceDetection{…8}` (each sub-block independently gated) |
 | `internationalization` | Realm settings → Localization | `supportedLocales`*, `defaultLocale`* (`null` ⇒ no block) |
 | `policies` | Authentication → Policies | `passwordPolicy`, `otpPolicy{…}`, `webAuthnPolicy{…}`, `webAuthnPasswordlessPolicy{…}` |
+| `client_registration` | Clients → Client registration | a list of `name`*, `providerId`*, `subType`* (`anonymous` \| `authenticated`), `config` — policies to **create**; Keycloak's built-in ones stay and every policy must pass |
 | `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
 
 \* required key when the group is supplied.

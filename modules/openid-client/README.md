@@ -76,6 +76,7 @@ A `set` of fine-grained scope permissions for the client (Keycloak token-exchang
 feature). Each element: `scope` (one of `view`, `manage`, `configure`, `map-roles`,
 `map-roles-client-scope`, `map-roles-composite`, `token-exchange`), `policies`,
 `decisionStrategy`, `description`. `null` (the default) leaves permissions unmanaged.
+These are fine-grained permissions **v1**: they fail on a realm whose `admin_permissions_enabled` (v2) is true.
 
 ### Role mappers (`role_mappers`)
 

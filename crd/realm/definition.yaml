@@ -45,7 +45,7 @@ spec:
                 description: When true, organization support is enabled.
                 type: boolean
               adminPermissionsEnabled:
-                description: Enables fine-grained admin permissions (v2).
+                description: Enables fine-grained admin permissions (v2). When true, OpenidClient `permissions` (v1) fail on this realm.
                 type: boolean
               internalId:
                 description: Override the realm's internal ID (defaults to the realm name).
@@ -288,8 +288,13 @@ spec:
                         type: string
                       authenticatorAttachment:
                         type: string
-                      requireResidentKey:
+                      discoverableCredential:
                         type: string
+                        enum:
+                        - not specified
+                        - required
+                        - preferred
+                        - discouraged
                       userVerificationRequirement:
                         type: string
                       createTimeout:
@@ -319,8 +324,13 @@ spec:
                         type: string
                       authenticatorAttachment:
                         type: string
-                      requireResidentKey:
+                      discoverableCredential:
                         type: string
+                        enum:
+                        - not specified
+                        - required
+                        - preferred
+                        - discouraged
                       userVerificationRequirement:
                         type: string
                       createTimeout:
@@ -337,6 +347,35 @@ spec:
                           type: string
                       passwordlessPasskeysEnabled:
                         type: boolean
+
+              # --- Clients → Client registration ---
+              clientRegistration:
+                description: Client registration access policies to create. Keycloak's built-in policies stay and every policy must pass.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  - providerId
+                  - subType
+                  properties:
+                    name:
+                      description: Display name of the policy, unique per subType.
+                      type: string
+                    providerId:
+                      description: Policy provider, e.g. trusted-hosts, max-clients, consent-required, scope, allowed-client-templates, allowed-protocol-mappers.
+                      type: string
+                    subType:
+                      description: Which registration the policy applies to.
+                      type: string
+                      enum:
+                      - anonymous
+                      - authenticated
+                    config:
+                      description: Provider-specific settings. Multi-value keys are comma-separated, e.g. trusted-hosts.
+                      type: object
+                      additionalProperties:
+                        type: string
 
               # --- Client scopes → realm defaults ---
               clientScopes:

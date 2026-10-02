@@ -262,6 +262,8 @@ Create scopes "view", "manage", "configure", "map-roles", "map-roles-client-scop
 Create a resource representing the openid client
 Create all scope based permission for the scopes and openid client resource
 If the realm-management Authorization is not enable, you have to create a dependency (depends_on) with the policy and the openid client.
+
+These are fine-grained permissions v1: they fail on a realm with admin permissions (v2) enabled.
 EOT
   type = set(object({
     scope = string

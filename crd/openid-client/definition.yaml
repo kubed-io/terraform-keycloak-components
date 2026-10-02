@@ -591,6 +591,7 @@ spec:
               permissions:
                 description: |
                   Client permissions configuration. This is part of a preview Keycloak feature for fine-grained permissions.
+                  These are fine-grained permissions v1: they fail on a realm with adminPermissionsEnabled (v2).
                   When enabling OpenID Client Permissions, Keycloak automatically creates scopes for view, manage, configure, 
                   map-roles, map-roles-client-scope, map-roles-composite, and token-exchange.
                 type: array
