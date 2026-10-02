@@ -37,8 +37,19 @@ rejected.
 
 ### Assigned roles (`roles`)
 
-A `set` of role IDs: realm or client roles assigned on the scope's **Scope** tab. Unlike
-openid-client there are no LDAP role mappers; those belong to a client.
+Roles assigned on the scope's **Scope** tab, by name. Leave `client` unset for a realm
+role, or give the owning client's `clientId` for a client role:
+
+```hcl
+roles = [
+  { name = "foo" },                 # realm role
+  { name = "bar", client = "buz" }, # client role of client "buz"
+]
+```
+
+The module looks up each role's ID (and each client's internal ID) with data sources, so a
+role that does not exist yet fails the plan. Unlike openid-client there are no LDAP role
+mappers; those belong to a client.
 
 ## Outputs
 

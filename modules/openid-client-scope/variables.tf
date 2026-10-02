@@ -143,7 +143,15 @@ EOF
 }
 
 variable "roles" {
-  description = "Client scope → Scope: IDs of the realm or client roles assigned to this scope."
-  type        = set(string)
-  default     = []
+  description = "Client scope → Scope: roles assigned to this scope, by name. Set `client` (its clientId) for a client role; leave it null for a realm role."
+  type = list(object({
+    name   = string
+    client = optional(string, null)
+  }))
+  default = []
+
+  validation {
+    condition     = length(distinct([for r in var.roles : r.client == null ? r.name : "${r.client}/${r.name}"])) == length(var.roles)
+    error_message = "Each role must be listed once."
+  }
 }
