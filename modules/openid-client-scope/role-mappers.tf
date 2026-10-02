@@ -1,6 +1,8 @@
 locals {
   # realm roles keyed by name, client roles by "<client>/<name>"
-  roles        = { for r in var.roles : r.client == null ? r.name : "${r.client}/${r.name}" => r }
+  roles        = { 
+    for r in var.roles : r.client == null ? r.name : "${r.client}/${r.name}" => r 
+  }
   role_clients = toset([for r in var.roles : r.client if r.client != null])
 }
 
