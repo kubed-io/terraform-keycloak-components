@@ -22,6 +22,7 @@ resource "keycloak_openid_client" "this" {
   implicit_flow_enabled                      = var.capabilities.implicitFlowEnabled
   direct_access_grants_enabled               = var.capabilities.directAccessGrantsEnabled
   service_accounts_enabled                   = var.capabilities.serviceAccountsEnabled
+  standard_token_exchange_enabled            = var.capabilities.standardTokenExchangeEnabled
   oauth2_device_authorization_grant_enabled  = var.capabilities.oauth2DeviceAuthorizationGrantEnabled
   backchannel_logout_session_required        = var.logout.backchannelLogoutSessionRequired
   backchannel_logout_revoke_offline_sessions = var.logout.backchannelLogoutRevokeOfflineSessions
