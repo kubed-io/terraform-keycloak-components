@@ -1,0 +1,98 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: openidclientscopes.keycloak.kubed.io
+spec:
+  compositeTypeRef:
+    apiVersion: keycloak.kubed.io/v1alpha1
+    kind: OpenidClientScope
+  mode: Pipeline
+  pipeline:
+  - step: module
+    functionRef:
+      name: patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: workspace
+        base:
+          apiVersion: opentofu.upbound.io/v1beta1
+          kind: Workspace
+          metadata:
+            name: openid-client-scope
+            annotations:
+              kubernetes.io/description: |
+                Creates an OpenID Connect client scope in Keycloak.
+          spec:
+            providerConfigRef:
+              name: keycloak
+            forProvider:
+              source: Remote
+              module: github.com/kubed-io/terraform-keycloak-components//modules/openid-client-scope?ref=main
+              # filled out by the patch-and-transform function
+              varmap: {}
+        patches:
+
+        # name after the instance name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s.openidclientscopes.keycloak"
+
+        # now set the actual workspace name as the external name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-openidclientscope"
+
+        # scope name: metadata.name, overridden by spec.name when set
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.varmap.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.name
+          toFieldPath: spec.forProvider.varmap.name
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.realm
+          toFieldPath: spec.forProvider.varmap.realm
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.description
+          toFieldPath: spec.forProvider.varmap.description
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.consentScreenText
+          toFieldPath: spec.forProvider.varmap.consent_screen_text
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.includeInTokenScope
+          toFieldPath: spec.forProvider.varmap.include_in_token_scope
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.includeInOpenidProviderMetadata
+          toFieldPath: spec.forProvider.varmap.include_in_openid_provider_metadata
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.guiOrder
+          toFieldPath: spec.forProvider.varmap.gui_order
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.extraConfig
+          toFieldPath: spec.forProvider.varmap.extra_config
+
+        # lists pass through unchanged (inner keys stay camelCase)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.protocolMappers
+          toFieldPath: spec.forProvider.varmap.protocol_mappers
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.roles
+          toFieldPath: spec.forProvider.varmap.roles
+
+        # map outputs back to status
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.id
+          toFieldPath: status.clientScopeId

@@ -7,3 +7,4 @@ resources:
 - realm
 - ldap-federation
 - openid-client
+- openid-client-scope
