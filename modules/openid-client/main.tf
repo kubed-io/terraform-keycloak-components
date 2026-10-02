@@ -6,13 +6,24 @@ locals {
   )
 
   # --- role mappers (role-mappers.tf, role-sync.tf) -------------------------------------
-  ldap_mappers    = [for m in var.role_mappers : m if m.type == "ldap"]
-  generic_mappers = [for m in var.role_mappers : m if m.type == "generic"]
-  has_ldap        = length(local.ldap_mappers) > 0
+  ldap_mappers = [
+    for m in var.role_mappers :
+    m
+    if m.type == "ldap"
+  ]
+  generic_mappers = [
+    for m in var.role_mappers :
+    m
+    if m.type == "generic"
+  ]
+  has_ldap = length(local.ldap_mappers) > 0
 
   # Distinct LDAP user-federation NAMES referenced (default to the realm name). One
   # components lookup per name (deduped), regardless of how many mappers use it.
-  fed_names = toset([for m in local.ldap_mappers : coalesce(m.ldap.federationId, var.realm)])
+  fed_names = toset([
+    for m in local.ldap_mappers :
+    coalesce(m.ldap.federationId, var.realm)
+  ])
 
   # federation name → GUID (id of the matching UserStorageProvider component)
   fed_guid = {
@@ -37,7 +48,11 @@ locals {
     password  = try(file("password"), var.creds.password)
   } : null
 
-  admin_token = local.has_ldap ? try(jsondecode(data.http.token[0].response_body).access_token, "") : ""
+  admin_token = (
+    local.has_ldap
+    ? try(jsondecode(data.http.token[0].response_body).access_token, "")
+    : ""
+  )
 }
 
 data "keycloak_realm" "this" {

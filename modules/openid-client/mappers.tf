@@ -1,6 +1,7 @@
 resource "keycloak_openid_audience_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "audience"
   }
   realm_id                   = data.keycloak_realm.this.id
@@ -15,7 +16,8 @@ resource "keycloak_openid_audience_protocol_mapper" "this" {
 
 resource "keycloak_openid_audience_resolve_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "audienceResolve"
   }
   realm_id  = data.keycloak_realm.this.id
@@ -25,7 +27,8 @@ resource "keycloak_openid_audience_resolve_protocol_mapper" "this" {
 
 resource "keycloak_openid_full_name_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "fullName"
   }
   realm_id            = data.keycloak_realm.this.id
@@ -38,7 +41,8 @@ resource "keycloak_openid_full_name_protocol_mapper" "this" {
 
 resource "keycloak_openid_group_membership_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "groupMembership"
   }
   realm_id            = data.keycloak_realm.this.id
@@ -53,7 +57,8 @@ resource "keycloak_openid_group_membership_protocol_mapper" "this" {
 
 resource "keycloak_openid_hardcoded_claim_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "hardcodedClaim"
   }
   realm_id            = data.keycloak_realm.this.id
@@ -69,7 +74,8 @@ resource "keycloak_openid_hardcoded_claim_protocol_mapper" "this" {
 
 resource "keycloak_openid_hardcoded_role_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "hardcodedRole"
   }
   realm_id  = data.keycloak_realm.this.id
@@ -80,7 +86,8 @@ resource "keycloak_openid_hardcoded_role_protocol_mapper" "this" {
 
 resource "keycloak_openid_sub_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "sub"
   }
   realm_id                   = data.keycloak_realm.this.id
@@ -92,7 +99,8 @@ resource "keycloak_openid_sub_protocol_mapper" "this" {
 
 resource "keycloak_openid_user_attribute_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "userAttribute"
   }
   realm_id             = data.keycloak_realm.this.id
@@ -110,7 +118,8 @@ resource "keycloak_openid_user_attribute_protocol_mapper" "this" {
 
 resource "keycloak_openid_user_client_role_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "userClientRole"
   }
   realm_id                    = data.keycloak_realm.this.id
@@ -128,7 +137,8 @@ resource "keycloak_openid_user_client_role_protocol_mapper" "this" {
 
 resource "keycloak_openid_user_property_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "userProperty"
   }
   realm_id            = data.keycloak_realm.this.id
@@ -144,7 +154,8 @@ resource "keycloak_openid_user_property_protocol_mapper" "this" {
 
 resource "keycloak_openid_user_realm_role_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "userRealmRole"
   }
   realm_id                   = data.keycloak_realm.this.id
@@ -162,7 +173,8 @@ resource "keycloak_openid_user_realm_role_protocol_mapper" "this" {
 
 resource "keycloak_openid_user_session_note_protocol_mapper" "this" {
   for_each = {
-    for mapper in var.protocol_mappers : mapper.name => mapper
+    for mapper in var.protocol_mappers :
+    mapper.name => mapper
     if mapper.type == "userSessionNote"
   }
   realm_id            = data.keycloak_realm.this.id

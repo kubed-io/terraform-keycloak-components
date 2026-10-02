@@ -267,12 +267,18 @@ variable "client_registration" {
   default = []
 
   validation {
-    condition     = alltrue([for p in var.client_registration : contains(["anonymous", "authenticated"], p.subType)])
+    condition = alltrue([
+      for p in var.client_registration :
+      contains(["anonymous", "authenticated"], p.subType)
+    ])
     error_message = "client_registration subType must be anonymous or authenticated."
   }
 
   validation {
-    condition     = length(distinct([for p in var.client_registration : "${p.subType}/${p.name}"])) == length(var.client_registration)
+    condition = length(distinct([
+      for p in var.client_registration :
+      "${p.subType}/${p.name}"
+    ])) == length(var.client_registration)
     error_message = "client_registration names must be unique per subType."
   }
 }

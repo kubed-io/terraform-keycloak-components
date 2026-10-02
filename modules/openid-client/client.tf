@@ -59,7 +59,11 @@ resource "keycloak_openid_client" "this" {
 
   # Authorization
   dynamic "authorization" {
-    for_each = var.authorization != null ? [var.authorization] : []
+    for_each = (
+      var.authorization != null
+      ? [var.authorization]
+      : []
+    )
     content {
       policy_enforcement_mode          = authorization.value.policyEnforcementMode
       decision_strategy                = authorization.value.decisionStrategy

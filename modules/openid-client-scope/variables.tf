@@ -152,7 +152,10 @@ variable "roles" {
   default = []
 
   validation {
-    condition     = length(distinct([for r in var.roles : r.client == null ? r.name : "${r.client}/${r.name}"])) == length(var.roles)
+    condition = length(distinct([
+      for r in var.roles :
+      r.client == null ? r.name : "${r.client}/${r.name}"
+    ])) == length(var.roles)
     error_message = "Each role must be listed once."
   }
 }

@@ -93,7 +93,11 @@ variable "capabilities" {
     # try() is the null/absent guard: when pkceCodeChallengeMethod is null/unset the
     # contains() errors and falls back to true (null is allowed). Independent of `||`
     # short-circuit behavior, which differs across tofu versions during validation.
-    condition     = var.capabilities.pkceCodeChallengeMethod == null ? true : contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod)
+    condition = (
+      var.capabilities.pkceCodeChallengeMethod == null
+      ? true
+      : contains(["plain", "S256"], var.capabilities.pkceCodeChallengeMethod)
+    )
     error_message = "pkceCodeChallengeMethod must be either 'plain', 'S256', or null."
   }
 }
@@ -147,7 +151,11 @@ variable "compatibility" {
   })
   default = {}
   validation {
-    condition     = var.compatibility.allowRefreshTokenInStandardTokenExchange == null ? true : contains(["NO", "SAME_SESSION"], var.compatibility.allowRefreshTokenInStandardTokenExchange)
+    condition = (
+      var.compatibility.allowRefreshTokenInStandardTokenExchange == null
+      ? true
+      : contains(["NO", "SAME_SESSION"], var.compatibility.allowRefreshTokenInStandardTokenExchange)
+    )
     error_message = "allowRefreshTokenInStandardTokenExchange must be NO or SAME_SESSION."
   }
 }
@@ -175,7 +183,11 @@ EOT
     # try() also serves as the null guard: when var.authorization is null the attribute
     # access errors and try() falls back to true (null is allowed). Avoids relying on
     # `||` short-circuiting, which differs across tofu versions during validation.
-    condition     = var.authorization == null ? true : contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode)
+    condition = (
+      var.authorization == null
+      ? true
+      : contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode)
+    )
     error_message = "policyEnforcementMode must be one of: ENFORCING, PERMISSIVE, DISABLED."
   }
 }
@@ -315,7 +327,14 @@ EOT
   # errors and falls back to true (null is allowed) — independent of `||` short-circuit
   # behavior, which differs across tofu versions during validation.
   validation {
-    condition     = var.permissions == null ? true : alltrue([for p in var.permissions : contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)])
+    condition = (
+      var.permissions == null
+      ? true
+      : alltrue([
+        for p in var.permissions :
+        contains(["view", "manage", "configure", "map-roles", "map-roles-client-scope", "map-roles-composite", "token-exchange"], p.scope)
+      ])
+    )
     error_message = "Each permission's scope must be one of: view, manage, configure, map-roles, map-roles-client-scope, map-roles-composite, token-exchange."
   }
 }
@@ -353,7 +372,10 @@ variable "service_account_roles" {
   }
 
   validation {
-    condition     = length(distinct([for r in var.service_account_roles : r.client == null ? r.name : "${r.client}/${r.name}"])) == length(var.service_account_roles)
+    condition = length(distinct([
+      for r in var.service_account_roles :
+      r.client == null ? r.name : "${r.client}/${r.name}"
+    ])) == length(var.service_account_roles)
     error_message = "Each service account role must be listed once."
   }
 }
