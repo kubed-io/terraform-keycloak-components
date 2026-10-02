@@ -132,6 +132,9 @@ spec:
           fromFieldPath: spec.policies
           toFieldPath: spec.forProvider.varmap.policies
         - type: FromCompositeFieldPath
+          fromFieldPath: spec.events
+          toFieldPath: spec.forProvider.varmap.events
+        - type: FromCompositeFieldPath
           fromFieldPath: spec.clientRegistration
           toFieldPath: spec.forProvider.varmap.client_registration
         - type: FromCompositeFieldPath

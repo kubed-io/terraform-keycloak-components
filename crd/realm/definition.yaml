@@ -348,6 +348,34 @@ spec:
                       passwordlessPasskeysEnabled:
                         type: boolean
 
+              # --- Realm Settings → Events ---
+              events:
+                description: Event listeners, user events and admin events. Unset leaves Keycloak's config untouched; removing it later resets the config.
+                type: object
+                properties:
+                  eventsListeners:
+                    description: Event listeners to send events to. Replaces the whole list; defaults to jboss-logging.
+                    type: array
+                    items:
+                      type: string
+                  eventsEnabled:
+                    description: Save user events to the database.
+                    type: boolean
+                  eventsExpiration:
+                    description: Seconds to keep saved user events; 0 keeps them forever.
+                    type: integer
+                  enabledEventTypes:
+                    description: User event types to save. Empty saves all types.
+                    type: array
+                    items:
+                      type: string
+                  adminEventsEnabled:
+                    description: Save admin events to the database.
+                    type: boolean
+                  adminEventsDetailsEnabled:
+                    description: Include the request representation in saved admin events.
+                    type: boolean
+
               # --- Clients → Client registration ---
               clientRegistration:
                 description: Client registration access policies to create. Keycloak's built-in policies stay and every policy must pass.

@@ -68,6 +68,7 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `security_defenses` | Realm settings → Security defenses | `headers{…8}`, `bruteForceDetection{…8}` (each sub-block independently gated) |
 | `internationalization` | Realm settings → Localization | `supportedLocales`*, `defaultLocale`* (`null` ⇒ no block) |
 | `policies` | Authentication → Policies | `passwordPolicy`, `otpPolicy{…}`, `webAuthnPolicy{…}`, `webAuthnPasswordlessPolicy{…}` |
+| `events` | Realm settings → Events | `eventsListeners` (default `["jboss-logging"]`, replaces the whole list), `eventsEnabled`, `eventsExpiration` (seconds), `enabledEventTypes` (empty ⇒ all), `adminEventsEnabled`, `adminEventsDetailsEnabled` — `null` ⇒ config untouched; removing it resets the config |
 | `client_registration` | Clients → Client registration | a list of `name`*, `providerId`*, `subType`* (`anonymous` \| `authenticated`), `config` — policies to **create**; Keycloak's built-in ones stay and every policy must pass |
 | `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
 

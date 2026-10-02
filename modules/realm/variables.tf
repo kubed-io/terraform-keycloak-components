@@ -277,6 +277,20 @@ variable "client_registration" {
   }
 }
 
+# --- Realm settings → Events (keycloak_realm_events) ---
+variable "events" {
+  description = "Realm settings → Events: listeners, user events and admin events. Null leaves Keycloak's config untouched; removing it later resets the config to zero values."
+  type = object({
+    eventsListeners           = optional(list(string), ["jboss-logging"]) # replaces the whole list
+    eventsEnabled             = optional(bool, null)
+    eventsExpiration          = optional(number, null)       # seconds; 0 = never expire
+    enabledEventTypes         = optional(list(string), null) # empty = all types
+    adminEventsEnabled        = optional(bool, null)
+    adminEventsDetailsEnabled = optional(bool, null)
+  })
+  default = null
+}
+
 # --- Client scopes → realm defaults (keycloak_realm_*_client_scopes) ---
 variable "client_scopes" {
   description = "Client scopes assigned to every new client. Each list is authoritative when set; null leaves Keycloak's defaults."
