@@ -35,10 +35,10 @@ A `set` where each element has a `name`, a `type`, and a sub-object named after 
 attaches to the scope (`client_scope_id`). An unknown type or a missing sub-object is
 rejected.
 
-### Role scope mappings (`role_mappers`)
+### Assigned roles (`roles`)
 
-A `set` of `{ roleId }`: realm or client roles added to the scope's **Scope** tab, keyed
-by role ID. Unlike openid-client there are no LDAP role mappers; those belong to a client.
+A `set` of role IDs: realm or client roles assigned on the scope's **Scope** tab. Unlike
+openid-client there are no LDAP role mappers; those belong to a client.
 
 ## Outputs
 

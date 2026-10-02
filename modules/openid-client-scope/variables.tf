@@ -142,10 +142,8 @@ EOF
   }
 }
 
-variable "role_mappers" {
-  description = "Client scope → Scope: realm or client roles (by role ID) added to this scope's role scope mappings."
-  type = set(object({
-    roleId = string
-  }))
-  default = []
+variable "roles" {
+  description = "Client scope → Scope: IDs of the realm or client roles assigned to this scope."
+  type        = set(string)
+  default     = []
 }

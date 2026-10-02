@@ -23,7 +23,7 @@ run "none_by_default" {
 run "one_per_role" {
   command = plan
   variables {
-    role_mappers = [{ roleId = "role-a" }, { roleId = "role-b" }]
+    roles = ["role-a", "role-b"]
   }
 
   assert {
