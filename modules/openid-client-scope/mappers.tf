@@ -53,6 +53,13 @@ resource "keycloak_openid_group_membership_protocol_mapper" "this" {
   add_to_id_token     = each.value.groupMembership.addToIdToken
   add_to_access_token = each.value.groupMembership.addToAccessToken
   add_to_userinfo     = each.value.groupMembership.addToUserinfo
+  # Unset follows the access token, as Keycloak treats a missing value; the provider
+  # would otherwise write false and drop the claim from introspection.
+  add_to_token_introspection = coalesce(
+    each.value.groupMembership.addToTokenIntrospection,
+    each.value.groupMembership.addToAccessToken,
+    true
+  )
 }
 
 resource "keycloak_openid_hardcoded_claim_protocol_mapper" "this" {

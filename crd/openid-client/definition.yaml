@@ -335,6 +335,9 @@ spec:
                         addToUserinfo:
                           description: When true, the claim is added to the userinfo response.
                           type: boolean
+                        addToTokenIntrospection:
+                          description: When true, the claim is added to the token introspection response. Unset follows addToAccessToken.
+                          type: boolean
                     hardcodedClaim:
                       description: Configuration for hardcodedClaim mapper.
                       type: object

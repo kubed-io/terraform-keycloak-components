@@ -19,3 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `openid-client-scope` module: a realm client scope with its protocol mappers and roles.
 - `ldap-federation` module: an LDAP user-federation provider and its mappers.
 - Crossplane CRDs for `realm`, `openid-client`, `openid-client-scope` and `ldap-federation`, each driving the matching module.
+
+### Fixed
+
+- Group membership mappers keep their claim in token introspection: `addToTokenIntrospection` now follows `addToAccessToken` when unset, instead of the provider's `false`.

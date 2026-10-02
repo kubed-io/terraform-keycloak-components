@@ -232,11 +232,12 @@ EOF
       addToUserinfo    = optional(bool)
     }))
     groupMembership = optional(object({
-      claimName        = string
-      fullPath         = optional(bool)
-      addToIdToken     = optional(bool)
-      addToAccessToken = optional(bool)
-      addToUserinfo    = optional(bool)
+      claimName               = string
+      fullPath                = optional(bool)
+      addToIdToken            = optional(bool)
+      addToAccessToken        = optional(bool)
+      addToUserinfo           = optional(bool)
+      addToTokenIntrospection = optional(bool) # unset follows addToAccessToken
     }))
     hardcodedClaim = optional(object({
       name             = string # claim_name

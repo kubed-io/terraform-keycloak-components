@@ -137,6 +137,44 @@ run "with_group_membership_mapper" {
   }
 }
 
+run "group_membership_introspection_follows_access_token" {
+  command = plan
+  variables {
+    protocol_mappers = [
+      {
+        name            = "unset"
+        type            = "groupMembership"
+        groupMembership = { claimName = "groups" }
+      },
+      {
+        name            = "no-access-token"
+        type            = "groupMembership"
+        groupMembership = { claimName = "groups", addToAccessToken = false }
+      },
+      {
+        name            = "explicit"
+        type            = "groupMembership"
+        groupMembership = { claimName = "groups", addToAccessToken = true, addToTokenIntrospection = false }
+      },
+    ]
+  }
+
+  assert {
+    condition     = keycloak_openid_group_membership_protocol_mapper.this["unset"].add_to_token_introspection == true
+    error_message = "Expected introspection to follow the access token (true) when unset."
+  }
+
+  assert {
+    condition     = keycloak_openid_group_membership_protocol_mapper.this["no-access-token"].add_to_token_introspection == false
+    error_message = "Expected introspection to follow addToAccessToken = false."
+  }
+
+  assert {
+    condition     = keycloak_openid_group_membership_protocol_mapper.this["explicit"].add_to_token_introspection == false
+    error_message = "Expected an explicit addToTokenIntrospection to win."
+  }
+}
+
 run "with_hardcoded_claim_mapper" {
   command = plan
   variables {
