@@ -283,6 +283,84 @@ variable "client_registration" {
   }
 }
 
+# --- Realm settings → Client policies → Profiles (keycloak_realm_client_policy_profile) ---
+# `any`, not an object type: each executor's configuration has its own shape, and a typed
+# list must hold one shape. The validations below stand in for the type.
+variable "client_profiles" {
+  description = "Realm settings → Client policies → Profiles: a list of `name`, `description` and `executors` (each `executor` and `configuration`, a map of plain values and lists)."
+  type        = any
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for p in var.client_profiles :
+      can(tostring(p.name)) && length(setsubtract(keys(p), ["name", "description", "executors"])) == 0
+    ])
+    error_message = "client_profiles items take name (required), description and executors only."
+  }
+
+  validation {
+    condition = alltrue([
+      for p in var.client_profiles :
+      alltrue([
+        for e in try(p.executors, []) :
+        can(tostring(e.executor)) && length(setsubtract(keys(e), ["executor", "configuration"])) == 0
+      ])
+    ])
+    error_message = "client_profiles executors take executor (required) and configuration only."
+  }
+
+  validation {
+    condition = length(distinct([
+      for p in var.client_profiles :
+      try(p.name, "")
+    ])) == length(var.client_profiles)
+    error_message = "client_profiles names must be unique."
+  }
+}
+
+# --- Realm settings → Client policies → Policies (keycloak_realm_client_policy_profile_policy) ---
+variable "client_policies" {
+  description = "Realm settings → Client policies → Policies: a list of `name`, `description`, `enabled` (default true), `profiles` and `conditions` (each `condition` and `configuration`, a map of plain values and lists)."
+  type        = any
+  default     = []
+
+  validation {
+    condition = alltrue([
+      for p in var.client_policies :
+      can(tostring(p.name)) && length(setsubtract(keys(p), ["name", "description", "enabled", "profiles", "conditions"])) == 0
+    ])
+    error_message = "client_policies items take name (required), description, enabled, profiles and conditions only."
+  }
+
+  validation {
+    condition = alltrue([
+      for p in var.client_policies :
+      can([for n in p.profiles : tostring(n)]) && length(try(p.profiles, [])) > 0
+    ])
+    error_message = "client_policies each need profiles: a list of at least one profile name."
+  }
+
+  validation {
+    condition = alltrue([
+      for p in var.client_policies :
+      alltrue([
+        for c in try(p.conditions, []) :
+        can(tostring(c.condition)) && length(setsubtract(keys(c), ["condition", "configuration"])) == 0
+      ])
+    ])
+    error_message = "client_policies conditions take condition (required) and configuration only."
+  }
+
+  validation {
+    condition = length(distinct([
+      for p in var.client_policies :
+      try(p.name, "")
+    ])) == length(var.client_policies)
+    error_message = "client_policies names must be unique."
+  }
+}
+
 # --- Realm settings → Events (keycloak_realm_events) ---
 variable "events" {
   description = "Realm settings → Events: listeners, user events and admin events. Null leaves Keycloak's config untouched; removing it later resets the config to zero values."

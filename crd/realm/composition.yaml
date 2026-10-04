@@ -33,6 +33,12 @@ spec:
               module: github.com/kubed-io/terraform-keycloak-components//modules/realm?ref=main
               # filled out by the patch-and-transform function
               varmap: {}
+              # One write at a time: Keycloak takes the client profile and policy lists only
+              # whole, so two concurrent writes drop an entry (modules/realm/client-policies.tf).
+              applyArgs:
+              - -parallelism=1
+              destroyArgs:
+              - -parallelism=1
               # SMTP creds → sensitive TF_VAR_*. The env entries' NAME + secret KEY are static
               # here (constants); only the secretKeyRef name/namespace are patched, from
               # spec.smtp.credentialsRef. The username comes from the SA secret's `mail` key
@@ -137,6 +143,12 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.clientRegistration
           toFieldPath: spec.forProvider.varmap.client_registration
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.clientProfiles
+          toFieldPath: spec.forProvider.varmap.client_profiles
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.clientPolicies
+          toFieldPath: spec.forProvider.varmap.client_policies
         - type: FromCompositeFieldPath
           fromFieldPath: spec.clientScopes
           toFieldPath: spec.forProvider.varmap.client_scopes
