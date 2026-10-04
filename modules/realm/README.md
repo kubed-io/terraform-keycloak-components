@@ -70,9 +70,15 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `policies` | Authentication → Policies | `passwordPolicy`, `otpPolicy{…}`, `webAuthnPolicy{…}`, `webAuthnPasswordlessPolicy{…}` |
 | `events` | Realm settings → Events | `eventsListeners` (default `["jboss-logging"]`, replaces the whole list), `eventsEnabled`, `eventsExpiration` (seconds), `enabledEventTypes` (empty ⇒ all), `adminEventsEnabled`, `adminEventsDetailsEnabled` — `null` ⇒ config untouched; removing it resets the config |
 | `client_registration` | Clients → Client registration | a list of `name`*, `providerId`*, `subType`* (`anonymous` \| `authenticated`), `config` — policies to **create**; Keycloak's built-in ones stay and every policy must pass |
+| `client_profiles` | Realm settings → Client policies → Profiles | a list of `name`*, `description`, `executors` (each `executor`*, `configuration`) |
+| `client_policies` | Realm settings → Client policies → Policies | a list of `name`*, `profiles`*, `description`, `enabled` (default `true`), `conditions` (each `condition`*, `configuration`) |
 | `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
 
 \* required key when the group is supplied.
+
+Client policy `configuration` takes each executor's or condition's own keys, with plain values
+and lists as written. Keycloak stores each realm's profiles and policies as one list it only
+accepts whole, so apply with `-parallelism=1` (the `Realm` composition does).
 
 ### SMTP auth (sensitive)
 

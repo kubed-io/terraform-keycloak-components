@@ -405,6 +405,74 @@ spec:
                       additionalProperties:
                         type: string
 
+              # --- Realm settings → Client policies ---
+              clientProfiles:
+                description: Client policy profiles, each a named set of executors that policies run.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  properties:
+                    name:
+                      description: Profile name, unique in the realm; policies reference it.
+                      type: string
+                    description:
+                      type: string
+                    executors:
+                      description: Run in order against every client a policy applies this profile to.
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - executor
+                        properties:
+                          executor:
+                            description: Executor type, e.g. pkce-enforcer, secure-client-authenticator, secret-rotation.
+                            type: string
+                          configuration:
+                            description: Executor settings, by the executor's own keys. Values are plain YAML, lists included.
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+              clientPolicies:
+                description: Client policies. When every condition matches a client, the named profiles run against it.
+                type: array
+                items:
+                  type: object
+                  required:
+                  - name
+                  - profiles
+                  properties:
+                    name:
+                      description: Policy name, unique in the realm.
+                      type: string
+                    description:
+                      type: string
+                    enabled:
+                      description: Defaults to true.
+                      type: boolean
+                    profiles:
+                      description: Names of the profiles to run.
+                      type: array
+                      minItems: 1
+                      items:
+                        type: string
+                    conditions:
+                      description: All must match for the policy to apply.
+                      type: array
+                      items:
+                        type: object
+                        required:
+                        - condition
+                        properties:
+                          condition:
+                            description: Condition type, e.g. client-access-type, client-scopes, client-roles, any-client.
+                            type: string
+                          configuration:
+                            description: Condition settings, by the condition's own keys. Values are plain YAML, lists included.
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+
               # --- Client scopes → realm defaults ---
               clientScopes:
                 description: Client scopes assigned to every new client. Each list is authoritative when set.
