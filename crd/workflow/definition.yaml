@@ -1,0 +1,98 @@
+apiVersion: apiextensions.crossplane.io/v2
+kind: CompositeResourceDefinition
+metadata:
+  name: workflows.keycloak.kubed.io
+spec:
+  scope: Cluster
+  group: keycloak.kubed.io
+  names:
+    kind: Workflow
+    plural: workflows
+  versions:
+  - name: v1alpha1
+    served: true
+    referenceable: true
+    schema:
+      openAPIV3Schema:
+        type: object
+        properties:
+          spec:
+            type: object
+            required:
+            - realm
+            - 'on'
+            - steps
+            properties:
+              realm:
+                description: The realm the workflow runs in.
+                type: string
+              name:
+                description: The workflow name, unique in the realm. Defaults to metadata.name.
+                type: string
+              # quoted: a bare `on` key is a YAML 1.1 boolean
+              'on':
+                description: |
+                  The event expression that starts the workflow, e.g. user-created or
+                  user-group-membership-added(/staff) or user-role-granted(admin). Quote the key: 'on'.
+                type: string
+              conditions:
+                description: |
+                  Keycloak's `if`: an expression the user must satisfy, e.g.
+                  has-user-attribute(plan=gold) and not is-member-of(/staff). Unset always starts it.
+                type: string
+              enabled:
+                description: When false, no new executions start and running ones pause. Keycloak default true.
+                type: boolean
+              concurrency:
+                description: What a new trigger does to an execution already running for the same user.
+                type: string
+                enum:
+                - restart-in-progress
+                - cancel-in-progress
+              schedule:
+                description: Also run every `after` over up to `batchSize` users that satisfy `conditions`.
+                type: object
+                required:
+                - after
+                properties:
+                  after:
+                    description: Interval between runs, e.g. 1d.
+                    type: string
+                  batchSize:
+                    description: Most users to start the workflow for in one run.
+                    type: integer
+              steps:
+                description: The steps, run in order.
+                type: array
+                minItems: 1
+                items:
+                  type: object
+                  required:
+                  - uses
+                  properties:
+                    uses:
+                      description: Step type, e.g. invite-user, notify-user, add-required-action, grant-role, disable-user.
+                      type: string
+                    after:
+                      description: Delay before the step, e.g. 30d.
+                      type: string
+                    priority:
+                      description: Orders steps that would otherwise run at the same time.
+                      type: integer
+                    config:
+                      description: The step's own settings (Keycloak's `with`). Values are strings.
+                      type: object
+                      additionalProperties:
+                        type: string
+          status:
+            description: A Status represents the observed state
+            type: object
+            properties:
+              workflowId:
+                description: The workflow's Keycloak ID.
+                type: string
+              errors:
+                description: Errors Keycloak recorded for the workflow.
+                type: array
+                items:
+                  type: string

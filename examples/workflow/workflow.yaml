@@ -1,0 +1,26 @@
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: Workflow
+metadata:
+  name: invite-new-people
+spec:
+  realm: example
+  'on': user-created
+  steps:
+  - uses: invite-user
+---
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: Workflow
+metadata:
+  name: track-inactive-users
+spec:
+  realm: example
+  'on': user-authenticated
+  conditions: not is-member-of(/admins)
+  concurrency: restart-in-progress
+  steps:
+  - uses: notify-user
+    after: 180d
+    config:
+      message: It has been a while since your last login.
+  - uses: disable-user
+    after: 7d

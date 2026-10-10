@@ -17,6 +17,7 @@ Reusable [Terraform]/[OpenTofu] modules that manage [Keycloak] objects through t
 | [openid-client](#openid-client) | `OpenidClient` | An OpenID Connect client, its mappers, scopes, permissions, and role mappers. |
 | [openid-client-scope](#openid-client-scope) | `OpenidClientScope` | A realm client scope, its protocol mappers, and its assigned roles. |
 | [ldap-federation](#ldap-federation) | `LdapFederation` | An LDAP user-federation provider and its attribute/role/group mappers. |
+| [workflow](#workflow) | `Workflow` | A workflow: realm events that run admin steps (invite, notify, add required action, …). |
 
 All CRDs live in the `keycloak.kubed.io/v1alpha1` group.
 
@@ -51,6 +52,14 @@ Creates and manages an **LDAP user-federation** provider for a realm, plus its m
 
 [module](modules/ldap-federation) · [CRD](crd/ldap-federation) · [example](examples/ldap-federation)
 
+### workflow
+
+Creates and manages a **workflow**: when a realm event matches `on` and the user satisfies
+`conditions`, Keycloak runs the steps in order, each after its own delay. A realm holds any
+number of them, so an app can ship its own next to its client.
+
+[module](modules/workflow) · [CRD](crd/workflow) · [example](examples/workflow)
+
 ## CRDs
 
 Each module ships a Crossplane **CompositeResourceDefinition** + **Composition** under
@@ -63,7 +72,7 @@ Sensitive inputs never appear in the spec: the Composition wires a referenced Se
 the workspace's `TF_VAR_*` env (e.g. the realm's SMTP creds, the federation's bind
 credential).
 
-Deploy all four with kustomize:
+Deploy all five with kustomize:
 
 ```sh
 kubectl apply -k crd

@@ -8,3 +8,4 @@ resources:
 - ldap-federation
 - openid-client
 - openid-client-scope
+- workflow
