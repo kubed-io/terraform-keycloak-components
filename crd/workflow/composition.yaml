@@ -1,0 +1,95 @@
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: workflows.keycloak.kubed.io
+spec:
+  compositeTypeRef:
+    apiVersion: keycloak.kubed.io/v1alpha1
+    kind: Workflow
+  mode: Pipeline
+  pipeline:
+  - step: module
+    functionRef:
+      name: patch-and-transform
+    input:
+      apiVersion: pt.fn.crossplane.io/v1beta1
+      kind: Resources
+      resources:
+      - name: workspace
+        base:
+          apiVersion: opentofu.upbound.io/v1beta1
+          kind: Workspace
+          metadata:
+            name: workflow
+            annotations:
+              kubernetes.io/description: |
+                Creates a workflow in Keycloak.
+          spec:
+            providerConfigRef:
+              name: keycloak
+            forProvider:
+              source: Remote
+              module: github.com/kubed-io/terraform-keycloak-components//modules/workflow?ref=main
+              # filled out by the patch-and-transform function
+              varmap: {}
+        patches:
+
+        # name after the instance name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.name
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s.workflows.keycloak"
+
+        # now set the actual workspace name as the external name
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: metadata.annotations[crossplane.io/external-name]
+          transforms:
+          - type: string
+            string:
+              type: Format
+              fmt: "%s-workflow"
+
+        # workflow name: metadata.name, overridden by spec.name when set
+        - type: FromCompositeFieldPath
+          fromFieldPath: metadata.name
+          toFieldPath: spec.forProvider.varmap.name
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.name
+          toFieldPath: spec.forProvider.varmap.name
+
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.realm
+          toFieldPath: spec.forProvider.varmap.realm
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.on
+          toFieldPath: spec.forProvider.varmap.on
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.conditions
+          toFieldPath: spec.forProvider.varmap.conditions
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.enabled
+          toFieldPath: spec.forProvider.varmap.enabled
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.concurrency
+          toFieldPath: spec.forProvider.varmap.concurrency
+
+        # objects and lists pass through unchanged (inner keys stay camelCase)
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.schedule
+          toFieldPath: spec.forProvider.varmap.schedule
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.steps
+          toFieldPath: spec.forProvider.varmap.steps
+
+        # map outputs back to status
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.id
+          toFieldPath: status.workflowId
+        - type: ToCompositeFieldPath
+          fromFieldPath: status.atProvider.outputs.errors
+          toFieldPath: status.errors
