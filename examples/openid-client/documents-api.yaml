@@ -1,0 +1,84 @@
+# A resource server whose permissions target a resource TYPE, so every document (including
+# ones created later through the Protection API) is covered. Shows the remaining policy
+# types: user, client, clientScope, and a NEGATIVE regex policy.
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClient
+metadata:
+  name: documents-api
+spec:
+  realm: example
+  description: Documents API, protected by Keycloak authorization
+  accessType: CONFIDENTIAL
+  capabilities:
+    standardFlowEnabled: false
+    serviceAccountsEnabled: true
+
+  authorization:
+    policyEnforcementMode: ENFORCING
+    # the app may register each user's documents itself
+    allowRemoteResourceManagement: true
+
+    scopes:
+    - name: read
+    - name: write
+    - name: share
+
+    resources:
+    # a template for the type; the app registers one resource per document
+    - name: document
+      type: urn:documents-api:document
+      ownerManagedAccess: true
+      scopes:
+      - read
+      - write
+      - share
+      attributes:
+        classification: internal
+
+    policies:
+    - name: editors
+      type: user
+      user:
+        users:
+        - alice
+        - bob
+    # calls from the n8n client's service account
+    - name: automation
+      type: client
+      client:
+        clients:
+        - n8n
+    # tokens that were granted the `documents` client scope
+    - name: has-documents-scope
+      type: clientScope
+      clientScope:
+        scopes:
+        - name: documents
+          required: true
+    # NEGATIVE flips the result: this grants everyone EXCEPT contractor addresses
+    - name: not-contractors
+      type: regex
+      logic: NEGATIVE
+      regex:
+        targetClaim: email
+        pattern: ^.+@contractors\.example\.com$
+
+    permissions:
+    # resource permission by type: every document, for a token with the documents scope
+    # whose user is not a contractor (UNANIMOUS: both policies must grant)
+    - name: access-documents
+      resourceType: urn:documents-api:document
+      policies:
+      - has-documents-scope
+      - not-contractors
+    # scope permission on every resource: write and share need an editor OR the automation
+    # client (AFFIRMATIVE: any one policy is enough)
+    - name: write-documents
+      type: scope
+      scopes:
+      - write
+      - share
+      decisionStrategy: AFFIRMATIVE
+      policies:
+      - editors
+      - automation

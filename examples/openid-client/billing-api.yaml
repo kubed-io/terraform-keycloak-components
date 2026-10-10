@@ -1,0 +1,83 @@
+# A resource server that protects URIs. Staff may read invoices; editing needs a billing
+# admin during business hours.
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClient
+metadata:
+  name: billing-api
+spec:
+  realm: example
+  description: Billing API, protected by Keycloak authorization
+  accessType: CONFIDENTIAL
+  capabilities:
+    standardFlowEnabled: false
+    serviceAccountsEnabled: true
+
+  authorization:
+    policyEnforcementMode: ENFORCING
+    decisionStrategy: UNANIMOUS
+
+    scopes:
+    - name: view
+    - name: edit
+      displayName: Edit
+
+    resources:
+    - name: invoices
+      displayName: Invoices
+      uris:
+      - /invoices/*
+      scopes:
+      - view
+      - edit
+    - name: reports
+      uris:
+      - /reports/*
+      scopes:
+      - view
+
+    policies:
+    # members of /staff and every group below it
+    - name: staff
+      type: group
+      group:
+        groups:
+        - path: /staff
+          extendChildren: true
+    # a realm role; add `client: <clientId>` for a client role
+    - name: billing-admins
+      type: role
+      role:
+        roles:
+        - name: billing-admin
+          required: true
+    - name: business-hours
+      type: time
+      time:
+        hour: 9
+        hourEnd: 17
+    # both must hold: UNANIMOUS is the default decisionStrategy
+    - name: admins-in-business-hours
+      type: aggregate
+      description: Billing admins, during business hours
+      aggregate:
+        policies:
+        - billing-admins
+        - business-hours
+
+    permissions:
+    # resource permission: any scope on these resources
+    - name: read-billing
+      resources:
+      - invoices
+      - reports
+      policies:
+      - staff
+    # scope permission: only `edit`, only on invoices
+    - name: edit-invoices
+      type: scope
+      resources:
+      - invoices
+      scopes:
+      - edit
+      policies:
+      - admins-in-business-hours
