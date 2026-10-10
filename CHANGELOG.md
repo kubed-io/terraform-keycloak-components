@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Crossplane CRDs for `realm`, `openid-client`, `openid-client-scope` and `ldap-federation`, each driving the matching module.
 - `realm` module: client policies, as `client_profiles` (executors) and `client_policies` (conditions → profiles).
 - `workflow` module and `Workflow` CRD: a Keycloak workflow (event expression, conditions, schedule, steps).
+- `openid-client` module: `authorization` takes the resource server's scopes, resources, policies (role, group, user, client, clientScope, time, regex, aggregate) and permissions, all by name.
 
 ### Fixed
 

@@ -194,7 +194,7 @@ spec:
                     - NO
                     - SAME_SESSION
               authorization:
-                description: When this block is present, fine-grained authorization will be enabled for this client. The client's accessType must be CONFIDENTIAL, and serviceAccountsEnabled must be true. Requires Keycloak 12+.
+                description: When this block is present, fine-grained authorization will be enabled for this client, with its scopes, resources, policies and permissions. The client's accessType must be CONFIDENTIAL, and serviceAccountsEnabled must be true.
                 type: object
                 required:
                 - policyEnforcementMode
@@ -219,6 +219,257 @@ spec:
                   keepDefaults:
                     description: When true, default policies and permissions will be created for this client.
                     type: boolean
+                  scopes:
+                    description: Authorization scopes, the actions on resources (view, edit, …). Others refer to them by name.
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          type: string
+                        displayName:
+                          type: string
+                        iconUri:
+                          type: string
+                  resources:
+                    description: The things this client protects. Others refer to them by name.
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          type: string
+                        displayName:
+                          type: string
+                        type:
+                          description: A resource type, e.g. urn:billing:invoice, that permissions can target.
+                          type: string
+                        uris:
+                          type: array
+                          items:
+                            type: string
+                        iconUri:
+                          type: string
+                        ownerManagedAccess:
+                          type: boolean
+                        scopes:
+                          description: Names from authorization.scopes.
+                          type: array
+                          items:
+                            type: string
+                        attributes:
+                          type: object
+                          additionalProperties:
+                            type: string
+                  policies:
+                    description: |
+                      Rules that grant or deny. Each has a type and a block named after it. Users,
+                      groups (by path), roles, clients and client scopes are given by name.
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      - type
+                      properties:
+                        name:
+                          type: string
+                        type:
+                          type: string
+                          enum:
+                          - role
+                          - group
+                          - user
+                          - client
+                          - clientScope
+                          - time
+                          - regex
+                          - aggregate
+                        description:
+                          type: string
+                        logic:
+                          type: string
+                          enum:
+                          - POSITIVE
+                          - NEGATIVE
+                        decisionStrategy:
+                          description: Defaults to UNANIMOUS.
+                          type: string
+                          enum:
+                          - UNANIMOUS
+                          - AFFIRMATIVE
+                          - CONSENSUS
+                        role:
+                          type: object
+                          required:
+                          - roles
+                          properties:
+                            roles:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                - name
+                                properties:
+                                  name:
+                                    type: string
+                                  client:
+                                    description: The clientId owning the role; unset for a realm role.
+                                    type: string
+                                  required:
+                                    type: boolean
+                            fetchRoles:
+                              type: boolean
+                        group:
+                          type: object
+                          required:
+                          - groups
+                          properties:
+                            groups:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                - path
+                                properties:
+                                  path:
+                                    description: The full group path, e.g. /staff.
+                                    type: string
+                                  extendChildren:
+                                    type: boolean
+                            groupsClaim:
+                              type: string
+                        user:
+                          type: object
+                          required:
+                          - users
+                          properties:
+                            users:
+                              description: Usernames.
+                              type: array
+                              items:
+                                type: string
+                        client:
+                          type: object
+                          required:
+                          - clients
+                          properties:
+                            clients:
+                              description: clientIds.
+                              type: array
+                              items:
+                                type: string
+                        clientScope:
+                          type: object
+                          required:
+                          - scopes
+                          properties:
+                            scopes:
+                              type: array
+                              items:
+                                type: object
+                                required:
+                                - name
+                                properties:
+                                  name:
+                                    type: string
+                                  required:
+                                    type: boolean
+                        time:
+                          type: object
+                          properties:
+                            notBefore:
+                              description: YYYY-MM-DD HH:MM:SS
+                              type: string
+                            notOnOrAfter:
+                              description: YYYY-MM-DD HH:MM:SS
+                              type: string
+                            dayMonth:
+                              x-kubernetes-int-or-string: true
+                            dayMonthEnd:
+                              x-kubernetes-int-or-string: true
+                            month:
+                              x-kubernetes-int-or-string: true
+                            monthEnd:
+                              x-kubernetes-int-or-string: true
+                            year:
+                              x-kubernetes-int-or-string: true
+                            yearEnd:
+                              x-kubernetes-int-or-string: true
+                            hour:
+                              x-kubernetes-int-or-string: true
+                            hourEnd:
+                              x-kubernetes-int-or-string: true
+                            minute:
+                              x-kubernetes-int-or-string: true
+                            minuteEnd:
+                              x-kubernetes-int-or-string: true
+                        regex:
+                          type: object
+                          required:
+                          - targetClaim
+                          - pattern
+                          properties:
+                            targetClaim:
+                              type: string
+                            pattern:
+                              type: string
+                            targetContextAttributes:
+                              type: boolean
+                        aggregate:
+                          type: object
+                          required:
+                          - policies
+                          properties:
+                            policies:
+                              description: Names of non-aggregate policies in this list.
+                              type: array
+                              items:
+                                type: string
+                  permissions:
+                    description: Which policies govern which resources or scopes. All references are by name.
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          type: string
+                        type:
+                          description: resource (default) or scope.
+                          type: string
+                          enum:
+                          - resource
+                          - scope
+                        description:
+                          type: string
+                        decisionStrategy:
+                          description: Defaults to UNANIMOUS.
+                          type: string
+                          enum:
+                          - UNANIMOUS
+                          - AFFIRMATIVE
+                          - CONSENSUS
+                        policies:
+                          type: array
+                          items:
+                            type: string
+                        resources:
+                          type: array
+                          items:
+                            type: string
+                        resourceType:
+                          description: Instead of resources, every resource of this type.
+                          type: string
+                        scopes:
+                          type: array
+                          items:
+                            type: string
               extraConfig:
                 description: A map of key/value pairs to add as custom attributes to the client. This can be used to add custom configuration that is not directly supported by this resource.
                 type: object

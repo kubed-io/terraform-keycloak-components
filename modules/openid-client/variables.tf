@@ -162,33 +162,264 @@ variable "compatibility" {
 
 variable "authorization" {
   description = <<EOT
-(Optional) When this block is present, fine-grained authorization will be enabled for this client.
-The client's access_type must be CONFIDENTIAL, and service_accounts_enabled must be true.
+(Optional) When this block is present, fine-grained authorization is enabled for this client:
+the client becomes a resource server and Keycloak decides who may do what to its resources.
+Needs access_type CONFIDENTIAL and capabilities.serviceAccountsEnabled = true.
 
-This block has the following arguments:
 - policyEnforcementMode (Required): ENFORCING, PERMISSIVE, or DISABLED.
-- decisionStrategy (Optional): AFFIRMATIVE, CONSENSUS, or UNANIMOUS.
-- allowRemoteResourceManagement (Optional): bool, defaults to false.
-- keepDefaults (Optional): bool, defaults to false.
+- decisionStrategy: UNANIMOUS, AFFIRMATIVE, or CONSENSUS.
+- allowRemoteResourceManagement, keepDefaults: bool.
+- scopes: { name, displayName, iconUri } — actions such as view or edit.
+- resources: { name, displayName, type, uris, iconUri, ownerManagedAccess, scopes (names), attributes }.
+- policies: { name, type, description, logic, decisionStrategy (default UNANIMOUS) } plus a block
+  named after the type: role, group, user, client, clientScope, time, regex, or aggregate.
+  Users, groups (by path), roles, clients and client scopes are given by name and looked up.
+  An aggregate combines plain (non-aggregate) policies by name.
+- permissions: { name, type (resource | scope, default resource), description, decisionStrategy,
+  policies, resources, resourceType, scopes } — all references by name.
 EOT
   type = object({
     policyEnforcementMode         = string
     decisionStrategy              = optional(string)
     allowRemoteResourceManagement = optional(bool)
     keepDefaults                  = optional(bool)
+    scopes = optional(list(object({
+      name        = string
+      displayName = optional(string)
+      iconUri     = optional(string)
+    })), [])
+    resources = optional(list(object({
+      name               = string
+      displayName        = optional(string)
+      type               = optional(string)
+      uris               = optional(list(string))
+      iconUri            = optional(string)
+      ownerManagedAccess = optional(bool)
+      scopes             = optional(list(string), [])
+      attributes         = optional(map(string))
+    })), [])
+    policies = optional(list(object({
+      name             = string
+      type             = string
+      description      = optional(string)
+      logic            = optional(string)
+      decisionStrategy = optional(string, "UNANIMOUS")
+      role = optional(object({
+        roles = list(object({
+          name     = string
+          client   = optional(string) # clientId; unset = realm role
+          required = optional(bool, false)
+        }))
+        fetchRoles = optional(bool)
+      }))
+      group = optional(object({
+        groups = list(object({
+          path           = string # e.g. /staff
+          extendChildren = optional(bool, false)
+        }))
+        groupsClaim = optional(string)
+      }))
+      user = optional(object({
+        users = list(string) # usernames
+      }))
+      client = optional(object({
+        clients = list(string) # clientIds
+      }))
+      clientScope = optional(object({
+        scopes = list(object({
+          name     = string
+          required = optional(bool, false)
+        }))
+      }))
+      time = optional(object({
+        notBefore    = optional(string) # YYYY-MM-DD HH:MM:SS
+        notOnOrAfter = optional(string)
+        dayMonth     = optional(string)
+        dayMonthEnd  = optional(string)
+        month        = optional(string)
+        monthEnd     = optional(string)
+        year         = optional(string)
+        yearEnd      = optional(string)
+        hour         = optional(string)
+        hourEnd      = optional(string)
+        minute       = optional(string)
+        minuteEnd    = optional(string)
+      }))
+      regex = optional(object({
+        targetClaim             = string
+        pattern                 = string
+        targetContextAttributes = optional(bool)
+      }))
+      aggregate = optional(object({
+        policies = list(string) # names of plain policies in this list
+      }))
+    })), [])
+    permissions = optional(list(object({
+      name             = string
+      type             = optional(string, "resource")
+      description      = optional(string)
+      decisionStrategy = optional(string, "UNANIMOUS")
+      policies         = optional(list(string), [])
+      resources        = optional(list(string), [])
+      resourceType     = optional(string)
+      scopes           = optional(list(string), [])
+    })), [])
   })
   default  = null
   nullable = true
+
   validation {
-    # try() also serves as the null guard: when var.authorization is null the attribute
-    # access errors and try() falls back to true (null is allowed). Avoids relying on
-    # `||` short-circuiting, which differs across tofu versions during validation.
     condition = (
       var.authorization == null
       ? true
       : contains(["ENFORCING", "PERMISSIVE", "DISABLED"], var.authorization.policyEnforcementMode)
     )
     error_message = "policyEnforcementMode must be one of: ENFORCING, PERMISSIVE, DISABLED."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : var.access_type == "CONFIDENTIAL" && try(var.capabilities.serviceAccountsEnabled, null) == true
+    )
+    error_message = "authorization makes this client a resource server, which Keycloak only allows on a confidential client with a service account: set access_type = CONFIDENTIAL and capabilities.serviceAccountsEnabled = true."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue(concat(
+        [for d in compact([var.authorization.decisionStrategy]) : contains(["UNANIMOUS", "AFFIRMATIVE", "CONSENSUS"], d)],
+        [for p in var.authorization.policies : contains(["UNANIMOUS", "AFFIRMATIVE", "CONSENSUS"], p.decisionStrategy)],
+        [for p in var.authorization.permissions : contains(["UNANIMOUS", "AFFIRMATIVE", "CONSENSUS"], p.decisionStrategy)],
+      ))
+    )
+    error_message = "Every decisionStrategy (on authorization, its policies and its permissions) must be UNANIMOUS, AFFIRMATIVE, or CONSENSUS."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue([
+        for p in var.authorization.policies :
+        p.logic == null ? true : contains(["POSITIVE", "NEGATIVE"], p.logic)
+      ])
+    )
+    error_message = "A policy's logic must be POSITIVE or NEGATIVE."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue([
+        for p in var.authorization.policies :
+        contains(["role", "group", "user", "client", "clientScope", "time", "regex", "aggregate"], p.type)
+      ])
+    )
+    error_message = "A policy's type must be one of: role, group, user, client, clientScope, time, regex, aggregate."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue([
+        for p in var.authorization.policies :
+        try({
+          role        = p.role
+          group       = p.group
+          user        = p.user
+          client      = p.client
+          clientScope = p.clientScope
+          time        = p.time
+          regex       = p.regex
+          aggregate   = p.aggregate
+        }[p.type], null) != null
+        if contains(["role", "group", "user", "client", "clientScope", "time", "regex", "aggregate"], p.type)
+      ])
+    )
+    error_message = "Each policy needs a block named after its type, e.g. type = \"role\" with role = { roles = [...] }."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue([
+        for names in [
+          var.authorization.scopes[*].name,
+          var.authorization.resources[*].name,
+          var.authorization.policies[*].name,
+          var.authorization.permissions[*].name,
+        ] :
+        length(distinct(names)) == length(names)
+      ])
+    )
+    error_message = "Names must be unique within authorization's scopes, resources, policies and permissions: they are how the others refer to them."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue(flatten([
+        for r in var.authorization.resources : [
+          for s in r.scopes :
+          contains(var.authorization.scopes[*].name, s)
+        ]
+      ]))
+    )
+    error_message = "A resource's scopes must be names from authorization.scopes."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue(flatten([
+        for p in var.authorization.policies : [
+          for n in p.aggregate.policies :
+          contains([for q in var.authorization.policies : q.name if q.type != "aggregate"], n)
+        ]
+        if p.type == "aggregate" && p.aggregate != null
+      ]))
+    )
+    error_message = "An aggregate policy's policies must be names of non-aggregate policies in authorization.policies; aggregates of aggregates are not supported."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue(flatten([
+        for p in var.authorization.permissions : concat(
+          [for n in p.policies : contains(var.authorization.policies[*].name, n)],
+          [for n in p.resources : contains(var.authorization.resources[*].name, n)],
+          [for n in p.scopes : contains(var.authorization.scopes[*].name, n)],
+        )
+      ]))
+    )
+    error_message = "A permission's policies, resources and scopes must be names from authorization.policies, .resources and .scopes."
+  }
+
+  validation {
+    condition = (
+      var.authorization == null
+      ? true
+      : alltrue([
+        for p in var.authorization.permissions :
+        (
+          p.type == "scope"
+          ? length(p.scopes) > 0 && !(length(p.resources) > 0 && p.resourceType != null)
+          : p.type == "resource" && (length(p.resources) > 0) != (p.resourceType != null)
+        )
+      ])
+    )
+    error_message = "A resource permission needs exactly one of resources or resourceType; a scope permission needs scopes (and not both resources and resourceType). type must be resource or scope."
   }
 }
 

@@ -1,0 +1,27 @@
+# A machine client: no browser login, a client-credentials service account with roles, and
+# the billing API in its tokens' audience.
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClient
+metadata:
+  name: invoice-sync
+spec:
+  realm: example
+  description: Nightly job that syncs invoices
+  accessType: CONFIDENTIAL
+  capabilities:
+    standardFlowEnabled: false
+    directAccessGrantsEnabled: false
+    serviceAccountsEnabled: true
+
+  # realm roles its service account holds; add `client: <clientId>` for a client role
+  serviceAccountRoles:
+  - name: offline_access
+  - name: billing-admin
+
+  protocolMappers:
+  - name: billing-audience
+    type: audience
+    audience:
+      includedClient: billing-api
+      addToIdToken: false
+      addToAccessToken: true

@@ -5,6 +5,25 @@ Crossplane CRD. For the full field reference see the
 [openid-client module](../../modules/openid-client); for the CRD itself see
 [crd/openid-client](../../crd/openid-client).
 
+## Files
+
+| File | Shows |
+| --- | --- |
+| [example-client.yaml](example-client.yaml) | A web app: redirects, PKCE, token lifespans, scopes, protocol mappers |
+| [billing-api.yaml](billing-api.yaml) | A resource server protecting URIs: group, role, time and aggregate policies; resource and scope permissions |
+| [documents-api.yaml](documents-api.yaml) | A resource server by resource type: user, client, clientScope and NEGATIVE regex policies; AFFIRMATIVE decisions |
+| [service-client.yaml](service-client.yaml) | A machine client: service account roles and an audience mapper |
+| [main.tf](main.tf) | `billing-api` and the machine client through the module directly |
+
+```sh
+kubectl apply -k .        # the four OpenidClients, through Crossplane
+tofu init && tofu apply   # main.tf, against the keycloak provider you configure there
+```
+
+The policies look up the users, groups, roles, clients and client scopes they name, so those
+must exist in the realm first: the `/staff` group, the `billing-admin` realm role, users
+`alice` and `bob`, the `n8n` client and the `documents` client scope.
+
 ## Simple Client Example
 
 ```yaml
@@ -87,6 +106,16 @@ spec:
       decisionStrategy: AFFIRMATIVE
       description: "Only super admins can manage this client"
 ```
+
+`permissions` above are admin permissions (who may view or manage this client), kept on the
+realm's `realm-management` client. For permissions on the client's own resources, see the
+next example.
+
+## Client as a Resource Server
+
+`authorization` lists the client's scopes, resources, policies and permissions, all by name.
+See [billing-api.yaml](billing-api.yaml) for URI-based resources, and
+[documents-api.yaml](documents-api.yaml) for permissions on a resource type and a deny rule.
 
 ## Client with Custom Scopes
 
