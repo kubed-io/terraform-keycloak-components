@@ -88,6 +88,74 @@ spec:
       description: "Only super admins can manage this client"
 ```
 
+`permissions` above are admin permissions (who may view or manage this client), kept on the
+realm's `realm-management` client. For permissions on the client's own resources, see the
+next example.
+
+## Client as a Resource Server
+
+`authorization` lists the client's scopes, resources, policies and permissions, all by name.
+The module looks up the users, groups, roles, clients and client scopes the policies name.
+
+```yaml
+apiVersion: keycloak.kubed.io/v1alpha1
+kind: OpenidClient
+metadata:
+  name: billing-api
+spec:
+  realm: example
+  accessType: CONFIDENTIAL
+  capabilities:
+    serviceAccountsEnabled: true
+  authorization:
+    policyEnforcementMode: ENFORCING
+    scopes:
+    - name: view
+    - name: edit
+    resources:
+    - name: invoices
+      uris:
+      - /invoices/*
+      scopes:
+      - view
+      - edit
+    policies:
+    - name: staff
+      type: group
+      group:
+        groups:
+        - path: /staff
+    - name: billing-admins
+      type: role
+      role:
+        roles:
+        - name: admin
+          client: billing-api
+    - name: business-hours
+      type: time
+      time:
+        hour: 9
+        hourEnd: 17
+    - name: admins-in-hours
+      type: aggregate
+      aggregate:
+        policies:
+        - billing-admins
+        - business-hours
+    permissions:
+    - name: read-invoices
+      resources:
+      - invoices
+      policies:
+      - staff
+    - name: edit-invoices
+      type: scope
+      scopes:
+      - edit
+      policies:
+      - admins-in-hours
+```
+
 ## Client with Custom Scopes
 
 ```yaml

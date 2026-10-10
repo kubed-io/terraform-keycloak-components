@@ -58,11 +58,59 @@ output (sensitive); it is not a settable input.
 | `logout` | Logout settings | `frontChannelLogoutEnabled`, `backchannelLogoutUrl`, `frontchannelLogoutUrl`, `backchannelLogoutSessionRequired`, `backchannelLogoutRevokeOfflineSessions` |
 | `tokens` | Advanced → Advanced settings | `accessTokenLifespan`, `clientSessionIdleTimeout`, `clientSessionMaxLifespan`, `clientOfflineSessionIdleTimeout`, `clientOfflineSessionMaxLifespan`, `oauth2DeviceCodeLifespan`, `oauth2DevicePollingInterval` (all seconds, as strings), `requireDpopBoundTokens` |
 | `compatibility` | Advanced → OpenID Connect Compatibility Modes | `excludeSessionStateFromAuthResponse`, `excludeIssuerFromAuthResponse`, `useRefreshTokens`, `useRefreshTokensClientCredentials`, `allowRefreshTokenInStandardTokenExchange` (`NO`\|`SAME_SESSION`) |
-| `authorization` | Authorization (`null` ⇒ off) | `policyEnforcementMode`* (`ENFORCING`\|`PERMISSIVE`\|`DISABLED`), `decisionStrategy`, `allowRemoteResourceManagement`, `keepDefaults` |
+| `authorization` | Authorization (`null` ⇒ off) | `policyEnforcementMode`* (`ENFORCING`\|`PERMISSIVE`\|`DISABLED`), `decisionStrategy`, `allowRemoteResourceManagement`, `keepDefaults`, `scopes`, `resources`, `policies`, `permissions` — see [Authorization](#authorization-authorization) |
 | `scopes` | Client scopes | `default` (always included), `optional` (user can consent) |
 
 \* required key when the group is supplied. `authorization` requires
-`access_type = CONFIDENTIAL` and `capabilities.serviceAccountsEnabled = true`.
+`access_type = CONFIDENTIAL` and `capabilities.serviceAccountsEnabled = true` (validated).
+
+### Authorization (`authorization`)
+
+Turns the client into a **resource server**: an app asks Keycloak whether a user may do a
+given scope on a given resource, and these lists hold the answer. Everything refers to
+everything else **by name**, and the module resolves names to Keycloak IDs.
+
+| List | Each element |
+| --- | --- |
+| `scopes` | `name`*, `displayName`, `iconUri`: actions such as `view` or `edit` |
+| `resources` | `name`*, `displayName`, `type`, `uris`, `iconUri`, `ownerManagedAccess`, `attributes`, `scopes` (names) |
+| `policies` | `name`*, `type`*, `description`, `logic` (`POSITIVE`\|`NEGATIVE`), `decisionStrategy` (default `UNANIMOUS`), and a block named after the type |
+| `permissions` | `name`*, `type` (`resource` default \| `scope`), `description`, `decisionStrategy` (default `UNANIMOUS`), `policies`, `resources` or `resourceType`, `scopes` (all names) |
+
+| Policy `type` | Block | Looked up by name |
+| --- | --- | --- |
+| `role` | `role = { roles = [{ name*, client, required }], fetchRoles }` | roles; `client` is the owning clientId, unset for a realm role |
+| `group` | `group = { groups = [{ path*, extendChildren }], groupsClaim }` | groups by full path, e.g. `/staff` |
+| `user` | `user = { users = [username] }` | users |
+| `client` | `client = { clients = [clientId] }` | clients |
+| `clientScope` | `clientScope = { scopes = [{ name*, required }] }` | client scopes |
+| `time` | `time = { notBefore, notOnOrAfter, dayMonth, month, year, hour, minute, …End }` | — |
+| `regex` | `regex = { targetClaim*, pattern*, targetContextAttributes }` | — |
+| `aggregate` | `aggregate = { policies = [name] }` | other policies in the list; not other aggregates |
+
+A lookup fails the plan when the user, group, role, client or client scope does not exist.
+The variable's validations catch the rest before Keycloak is called:
+- an unknown policy type, or a policy missing its block;
+- a duplicate name;
+- a reference to a name that isn't in the lists;
+- a resource permission without exactly one of `resources` / `resourceType`, or a scope
+  permission without `scopes`.
+
+```hcl
+authorization = {
+  policyEnforcementMode = "ENFORCING"
+  scopes                = [{ name = "view" }, { name = "edit" }]
+  resources             = [{ name = "invoices", uris = ["/invoices/*"], scopes = ["view", "edit"] }]
+  policies = [
+    { name = "staff", type = "group", group = { groups = [{ path = "/staff" }] } },
+    { name = "admins", type = "role", role = { roles = [{ name = "admin" }] } },
+  ]
+  permissions = [
+    { name = "read-invoices", resources = ["invoices"], policies = ["staff"] },
+    { name = "edit-invoices", type = "scope", scopes = ["edit"], policies = ["admins"] },
+  ]
+}
+```
 
 ### Protocol mappers (`protocol_mappers`)
 
