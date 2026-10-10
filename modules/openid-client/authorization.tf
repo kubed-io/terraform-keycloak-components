@@ -81,6 +81,9 @@ data "keycloak_role" "authz" {
     )
   )
   name = each.value.name
+
+  # this client's own roles come from its LDAP role mappers; look up after they are synced
+  depends_on = [data.http.role_sync]
 }
 
 data "keycloak_user" "authz" {
