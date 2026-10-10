@@ -152,6 +152,12 @@ spec:
         - type: FromCompositeFieldPath
           fromFieldPath: spec.clientScopes
           toFieldPath: spec.forProvider.varmap.client_scopes
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.requiredActions
+          toFieldPath: spec.forProvider.varmap.required_actions
+        - type: FromCompositeFieldPath
+          fromFieldPath: spec.userProfile
+          toFieldPath: spec.forProvider.varmap.user_profile
 
         # --- SMTP: mapped field-by-field so the credentialsRef (handled via env,
         # below) is NOT passed into the module's smtp object var ---

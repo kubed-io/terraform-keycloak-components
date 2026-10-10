@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `realm` module: client policies, as `client_profiles` (executors) and `client_policies` (conditions → profiles).
 - `workflow` module and `Workflow` CRD: a Keycloak workflow (event expression, conditions, schedule, steps).
 - `openid-client` module: `authorization` takes the resource server's scopes, resources, policies (role, group, user, client, clientScope, time, regex, aggregate) and permissions, all by name.
+- `realm` module: `required_actions`, to enable and configure required actions such as `UPDATE_EMAIL`.
+- `realm` module: `user_profile`, the realm's whole user profile (attributes, validators, permissions, groups).
 
 ### Fixed
 

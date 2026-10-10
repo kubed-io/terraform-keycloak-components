@@ -384,3 +384,72 @@ variable "client_scopes" {
   })
   default = {}
 }
+
+# --- Authentication → Required actions (keycloak_required_action) ---
+variable "required_actions" {
+  description = "Authentication → Required actions, keyed by alias (e.g. UPDATE_EMAIL). Listed actions are managed; others are left alone. Removing an entry later UNREGISTERS that action from the realm, not just stops managing it."
+  type = map(object({
+    enabled       = optional(bool, true)
+    defaultAction = optional(bool, false)
+    priority      = optional(number)
+    name          = optional(string)
+    config        = optional(map(string)) # the action's own keys, e.g. verifyEmail for UPDATE_EMAIL
+  }))
+  default = null
+}
+
+# --- Realm settings → User profile (keycloak_realm_user_profile) ---
+variable "user_profile" {
+  description = "Realm settings → User profile. One per realm, replaced WHOLE: an attribute or group left out is removed (username and email are required). Null leaves the profile alone; removing it later resets the realm to just username and email."
+  type = object({
+    unmanagedAttributePolicy = optional(string)
+    attributes = list(object({
+      name              = string
+      displayName       = optional(string)
+      group             = optional(string)
+      defaultValue      = optional(string)
+      multiValued       = optional(bool, false)
+      enabledWhenScope  = optional(list(string))
+      requiredForRoles  = optional(list(string))
+      requiredForScopes = optional(list(string))
+      permissions = optional(object({
+        view = optional(list(string), [])
+        edit = optional(list(string), [])
+      }))
+      validators  = optional(map(map(string)), {}) # validator name → its config
+      annotations = optional(map(string))
+    }))
+    groups = optional(list(object({
+      name               = string
+      displayHeader      = optional(string)
+      displayDescription = optional(string)
+      annotations        = optional(map(string))
+    })), [])
+  })
+  default = null
+
+  validation {
+    condition = (
+      var.user_profile == null
+      ? true
+      : alltrue([
+        for n in ["username", "email"] :
+        contains(var.user_profile.attributes[*].name, n)
+      ])
+    )
+    error_message = "user_profile.attributes must include username and email: the profile is replaced whole and Keycloak requires both."
+  }
+
+  validation {
+    condition = (
+      var.user_profile == null
+      ? true
+      : (
+        var.user_profile.unmanagedAttributePolicy == null
+        ? true
+        : contains(["DISABLED", "ENABLED", "ADMIN_EDIT", "ADMIN_VIEW"], var.user_profile.unmanagedAttributePolicy)
+      )
+    )
+    error_message = "unmanagedAttributePolicy must be DISABLED, ENABLED, ADMIN_EDIT or ADMIN_VIEW."
+  }
+}

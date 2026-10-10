@@ -489,6 +489,127 @@ spec:
                     items:
                       type: string
 
+              # --- Authentication → Required actions ---
+              requiredActions:
+                description: |
+                  Required actions keyed by alias, e.g. UPDATE_EMAIL. Listed actions are managed; others are
+                  left alone. Removing an entry later unregisters that action from the realm.
+                type: object
+                additionalProperties:
+                  type: object
+                  properties:
+                    enabled:
+                      description: Defaults to true.
+                      type: boolean
+                    defaultAction:
+                      description: Add the action to every new user.
+                      type: boolean
+                    priority:
+                      description: Lower runs first.
+                      type: integer
+                    name:
+                      description: Display name in the UI.
+                      type: string
+                    config:
+                      description: The action's own settings, e.g. verifyEmail for UPDATE_EMAIL. Values are strings.
+                      type: object
+                      additionalProperties:
+                        type: string
+
+              # --- Realm settings → User profile ---
+              userProfile:
+                description: |
+                  The realm's one user profile, replaced whole: an attribute or group left out is removed, and
+                  username and email are required. Unset leaves the profile alone; removing it later resets the
+                  realm to just username and email.
+                type: object
+                required:
+                - attributes
+                properties:
+                  unmanagedAttributePolicy:
+                    description: What happens to attributes the profile does not list.
+                    type: string
+                    enum:
+                    - DISABLED
+                    - ENABLED
+                    - ADMIN_EDIT
+                    - ADMIN_VIEW
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          type: string
+                        displayName:
+                          description: Text or a message key such as ${username}.
+                          type: string
+                        group:
+                          description: Name of a group in `groups`.
+                          type: string
+                        defaultValue:
+                          description: Keycloak 26.4+.
+                          type: string
+                        multiValued:
+                          type: boolean
+                        enabledWhenScope:
+                          description: Only enabled when a client requests one of these scopes.
+                          type: array
+                          items:
+                            type: string
+                        requiredForRoles:
+                          description: admin, user.
+                          type: array
+                          items:
+                            type: string
+                        requiredForScopes:
+                          type: array
+                          items:
+                            type: string
+                        permissions:
+                          type: object
+                          properties:
+                            view:
+                              description: admin, user.
+                              type: array
+                              items:
+                                type: string
+                            edit:
+                              description: admin, user.
+                              type: array
+                              items:
+                                type: string
+                        validators:
+                          description: Validator name to its settings, e.g. length {max 255} or email {}.
+                          type: object
+                          additionalProperties:
+                            type: object
+                            x-kubernetes-preserve-unknown-fields: true
+                        annotations:
+                          description: UI hints, e.g. inputType.
+                          type: object
+                          additionalProperties:
+                            type: string
+                  groups:
+                    type: array
+                    items:
+                      type: object
+                      required:
+                      - name
+                      properties:
+                        name:
+                          type: string
+                        displayHeader:
+                          type: string
+                        displayDescription:
+                          type: string
+                        annotations:
+                          type: object
+                          additionalProperties:
+                            type: string
+
           status:
             description: A Status represents the observed state
             type: object
