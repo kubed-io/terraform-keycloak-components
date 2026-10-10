@@ -73,6 +73,8 @@ its bind creds. The homelab reuses the LDAP service-account secret as the SMTP c
 | `client_profiles` | Realm settings → Client policies → Profiles | a list of `name`*, `description`, `executors` (each `executor`*, `configuration`) |
 | `client_policies` | Realm settings → Client policies → Policies | a list of `name`*, `profiles`*, `description`, `enabled` (default `true`), `conditions` (each `condition`*, `configuration`) |
 | `client_scopes` | Client scopes → realm defaults | `default`, `optional` — scope names every new client gets; each list is authoritative when set (`null` ⇒ Keycloak's defaults untouched) |
+| `required_actions` | Authentication → Required actions | map keyed by alias: `enabled` (default `true`), `defaultAction`, `priority`, `name`, `config` (the action's own keys, e.g. `verifyEmail` for `UPDATE_EMAIL`) — listed actions are managed, others untouched; **removing an entry unregisters the action** |
+| `user_profile` | Realm settings → User profile | `attributes`* (each `name`*, `displayName`, `group`, `defaultValue`, `multiValued`, `enabledWhenScope`, `requiredForRoles`, `requiredForScopes`, `permissions{view,edit}`, `validators`, `annotations`), `groups` (each `name`*, `displayHeader`, `displayDescription`, `annotations`), `unmanagedAttributePolicy` — one per realm, **replaced whole** (must list `username` and `email`); removing it resets the realm to just those two |
 
 \* required key when the group is supplied.
 
