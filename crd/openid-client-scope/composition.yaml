@@ -31,7 +31,7 @@ spec:
               source: Remote
               # the module is pulled once per ?ref, not on every reconcile
               remotePullPolicy: IfNotPresent
-              module: github.com/kubed-io/terraform-keycloak-components//modules/openid-client-scope?ref=main
+              module: github.com/kubed-io/terraform-keycloak-components//modules/openid-client-scope?ref=v0.0.2
               # filled out by the patch-and-transform function
               varmap: {}
         patches:
