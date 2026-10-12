@@ -5,7 +5,7 @@ Reusable [Terraform]/[OpenTofu] modules that manage [Keycloak] objects through t
 [Crossplane] CRD so the same module can be driven two ways:
 
 - **Terraform / OpenTofu** — call a module under [`modules/`](modules) directly:
-  `source = "git::https://github.com/kubed-io/terraform-keycloak-components.git//modules/<name>?ref=main"`.
+  `source = "git::https://github.com/kubed-io/terraform-keycloak-components.git//modules/<name>?ref=vX.Y.Z"`.
 - **Kubernetes (Crossplane)** — apply the matching CRD from [`crd/`](crd); its Composition
   reconciles an OpenTofu `Workspace` that calls the very same module. See [CRDs](#crds).
 
@@ -72,11 +72,14 @@ Sensitive inputs never appear in the spec: the Composition wires a referenced Se
 the workspace's `TF_VAR_*` env (e.g. the realm's SMTP creds, the federation's bind
 credential).
 
-Deploy all five with kustomize:
+Deploy all five with kustomize, at a release tag:
 
 ```sh
-kubectl apply -k crd
+kubectl apply -k "https://github.com/kubed-io/terraform-keycloak-components//crd/?ref=vX.Y.Z"
 ```
+
+Releases are cut by the Publish workflow, which pins every Composition's module to the
+release's own tag, so deploy `crd/` at a tag (`?ref=vX.Y.Z`), never at `main`.
 
 ## References
 

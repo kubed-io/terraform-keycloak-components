@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `realm` module: `required_actions`, to enable and configure required actions such as `UPDATE_EMAIL`.
 - `realm` module: `user_profile`, the realm's whole user profile (attributes, validators, permissions, groups).
 
+### Changed
+
+- CRDs: each Composition runs the modules from its own release tag and pulls them once per release, not on every reconcile.
+
 ### Fixed
 
 - Group membership mappers keep their claim in token introspection: `addToTokenIntrospection` now follows `addToAccessToken` when unset, instead of the provider's `false`.
