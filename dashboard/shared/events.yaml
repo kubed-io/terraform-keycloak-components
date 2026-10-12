@@ -1,0 +1,49 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: keycloak-events
+spec:
+  id: 4
+  title: ''
+  description: |
+    Kubernetes events about the object and its Workspace in the time range, from Loki: compose
+    errors, reconcile failures and applies show here first. One row per reason and message, with how
+    often and when last.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: <div class="kd"><kd-k8s-events object></kd-k8s-events></div>
+        defaultContent: <div class="kd"><div class="none">No events in the time range.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: events.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

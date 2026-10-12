@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-openid-client-dashboard
+# The OpenidClient dashboard: its facts panel, its tabs' panels, and the dashboard that lays them out
+# with the shared header, status and YAML. Its tabs/*.yaml are layouts the dashboard embeds.
+resources:
+- facts.yaml
+- tabs/activity/client-logins.yaml
+- tabs/activity/client-tokens.yaml
+- tabs/activity/client-logouts.yaml
+- tabs/activity/client-errors.yaml
+- tabs/activity/client-events.yaml
+- tabs/activity/client-errors-by-type.yaml
+- tabs/activity/client-role-syncs.yaml
+- tabs/settings/settings.yaml
+- tabs/mappers/protocol-mappers.yaml
+- tabs/mappers/role-mappers.yaml
+- tabs/authentication/authentication.yaml
+- dashboard.yaml

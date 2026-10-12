@@ -1,0 +1,65 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: client-logins
+spec:
+  id: 10
+  title: Logins
+  description: Successful interactive logins through this client in the time range.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: prometheus
+            version: v0
+            datasource:
+              name: prometheus
+            spec:
+              expr: sum(((increase(keycloak_user_events_total{job="keycloak-service", realm="${realm}", client_id="${name}",
+                event="login", error=""}[$__range]) + (min_over_time(keycloak_user_events_total{job="keycloak-service",
+                realm="${realm}", client_id="${name}", event="login", error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service",
+                realm="${realm}", client_id="${name}", event="login", error=""} offset $__range)) or increase(keycloak_user_events_total{job="keycloak-service",
+                realm="${realm}", client_id="${name}", event="login", error=""}[$__range]) or (min_over_time(keycloak_user_events_total{job="keycloak-service",
+                realm="${realm}", client_id="${name}", event="login", error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service",
+                realm="${realm}", client_id="${name}", event="login", error=""} offset $__range))) or vector(0)
+              legendFormat: ''
+              range: false
+              instant: true
+              format: table
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: stat
+    spec:
+      options:
+        reduceOptions:
+          calcs:
+          - lastNotNull
+          fields: ''
+          values: false
+        colorMode: value
+        graphMode: none
+        textMode: value
+        justifyMode: center
+        orientation: auto
+      fieldConfig:
+        defaults:
+          unit: short
+          decimals: 0
+          noValue: '0'
+          color:
+            mode: thresholds
+          thresholds:
+            mode: absolute
+            steps:
+            - color: text
+              value: null
+        overrides: []

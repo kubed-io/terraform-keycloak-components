@@ -1,0 +1,52 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: keycloak-status
+spec:
+  id: 2
+  title: ''
+  description: |
+    Is it working: the object's conditions as Crossplane reports them, and the OpenTofu Workspace
+    that applies it - open it for its variables, outputs and provider log.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd">
+          <kd-status></kd-status>
+          <kd-card style="display: block; margin-top: 12px"><kd-sheet layout="grid"></kd-sheet></kd-card>
+          </div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: status.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

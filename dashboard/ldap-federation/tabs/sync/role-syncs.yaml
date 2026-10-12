@@ -1,0 +1,55 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: ldap-federation-role-syncs
+spec:
+  id: 21
+  title: Role syncs by mapper
+  description: |
+    Each run of an LDAP role mapper in Keycloak's log, about hourly per client. A mapper whose bars
+    stop has stopped syncing; its client's view shows the same series.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: loki
+            version: v0
+            datasource:
+              name: loki
+            spec:
+              expr: sum by (mapper) (count_over_time({namespace="auth", instance="auth/keycloak-0:keycloak"} |=
+                "Syncing data for mapper" | regexp `mapper '(?P<mapper>[^']+)'` [$__interval]))
+              queryType: range
+              legendFormat: '{{mapper}}'
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: timeseries
+    spec:
+      options:
+        legend:
+          displayMode: table
+          placement: right
+          showLegend: true
+          calcs:
+          - sum
+        tooltip:
+          mode: multi
+      fieldConfig:
+        defaults:
+          unit: short
+          decimals: 0
+          custom:
+            drawStyle: bars
+            fillOpacity: 80
+            stacking:
+              mode: normal
+        overrides: []

@@ -1,0 +1,60 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: client-authentication
+spec:
+  id: 23
+  title: ''
+  description: |
+    How the client authenticates and what it may do: its access type and the login flows it allows
+    (and whether a public client uses PKCE), its credentials and the Secret they are written to, the
+    roles its service account holds, and fine-grained authorization - resources, policies and
+    permissions.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: ../../../shared/from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd">
+          <kd-status id="flows"></kd-status>
+          <div class="cols" style="margin-top: 12px">
+          <kd-card id="creds"><kd-sheet id="creds-sheet"></kd-sheet></kd-card>
+          <kd-card id="sa"><kd-table id="saroles"></kd-table></kd-card>
+          </div>
+          <h3 style="margin-top: 16px">Authorization</h3>
+          <kd-status id="authz-state"></kd-status>
+          <div id="authz"></div>
+          </div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: authentication.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

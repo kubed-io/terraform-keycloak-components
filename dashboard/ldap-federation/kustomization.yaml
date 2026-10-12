@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-ldap-federation-dashboard
+# The LdapFederation dashboard: its facts panel, its tabs' panels, and the dashboard that lays them out
+# with the shared header, status and YAML. Its tabs/*.yaml are layouts the dashboard embeds.
+resources:
+- facts.yaml
+- tabs/sync/role-syncs.yaml
+- tabs/sync/sync-log.yaml
+- tabs/mappers/mappers.yaml
+- tabs/settings/settings.yaml
+- dashboard.yaml

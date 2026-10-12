@@ -1,0 +1,157 @@
+# The OpenidClient picker, then what the shared panels and the tabs read.
+kind: QueryVariable
+spec:
+  name: name
+  current:
+    text: ''
+    value: ''
+  label: Client
+  hide: dontHide
+  refresh: onDashboardLoad
+  skipUrlSync: false
+  query:
+    kind: DataQuery
+    group: yesoreyeram-infinity-datasource
+    version: v0
+    datasource:
+      name: kubernetes
+    spec:
+      infinityQuery:
+        columns: []
+        filters: []
+        format: table
+        parser: jq-backend
+        refId: variable
+        root_selector: '[.items[] | {v: .metadata.name}]'
+        source: url
+        type: json
+        url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients
+        url_options:
+          headers:
+          - key: Accept
+            value: application/json
+          method: GET
+      query: ''
+      queryType: infinity
+      refId: variable
+  regex: ''
+  regexApplyTo: value
+  sort: alphabeticalAsc
+  definition: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients
+  options: []
+  multi: false
+  includeAll: false
+  allowCustomValue: true
+  description: The OpenidClient to show, by metadata.name
+---
+kind: ConstantVariable
+spec:
+  name: kind
+  query: OpenidClient
+  current:
+    text: OpenidClient
+    value: OpenidClient
+  hide: hideVariable
+  skipUrlSync: true
+  description: This dashboard's kind, for the shared panels
+---
+kind: ConstantVariable
+spec:
+  name: plural
+  query: openidclients
+  current:
+    text: openidclients
+    value: openidclients
+  hide: hideVariable
+  skipUrlSync: true
+  description: Its resource name in keycloak.kubed.io/v1alpha1, for the shared panels
+---
+kind: QueryVariable
+spec:
+  name: realm
+  current:
+    text: ''
+    value: ''
+  label: realm
+  hide: hideVariable
+  refresh: onDashboardLoad
+  skipUrlSync: true
+  query:
+    kind: DataQuery
+    group: yesoreyeram-infinity-datasource
+    version: v0
+    datasource:
+      name: kubernetes
+    spec:
+      infinityQuery:
+        columns: []
+        filters: []
+        format: table
+        parser: jq-backend
+        refId: variable
+        root_selector: '[{v: (.items[0].spec.realm // "none")}]'
+        source: url
+        type: json
+        url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients?fieldSelector=metadata.name%3D${name}
+        url_options:
+          headers:
+          - key: Accept
+            value: application/json
+          method: GET
+      query: ''
+      queryType: infinity
+      refId: variable
+  regex: ''
+  regexApplyTo: value
+  sort: alphabeticalAsc
+  definition: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients?fieldSelector=metadata.name%3D${name}
+  options: []
+  multi: false
+  includeAll: false
+  allowCustomValue: false
+  description: The client's realm, for the metrics
+---
+kind: QueryVariable
+spec:
+  name: rolemappers
+  current:
+    text: ''
+    value: ''
+  label: rolemappers
+  hide: hideVariable
+  refresh: onDashboardLoad
+  skipUrlSync: true
+  query:
+    kind: DataQuery
+    group: yesoreyeram-infinity-datasource
+    version: v0
+    datasource:
+      name: kubernetes
+    spec:
+      infinityQuery:
+        columns: []
+        filters: []
+        format: table
+        parser: jq-backend
+        refId: variable
+        root_selector: '[{v: ([.items[0].spec.roleMappers[]?.name] | if length == 0 then "none" else join("|") end)}]'
+        source: url
+        type: json
+        url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients?fieldSelector=metadata.name%3D${name}
+        url_options:
+          headers:
+          - key: Accept
+            value: application/json
+          method: GET
+      query: ''
+      queryType: infinity
+      refId: variable
+  regex: ''
+  regexApplyTo: value
+  sort: alphabeticalAsc
+  definition: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients?fieldSelector=metadata.name%3D${name}
+  options: []
+  multi: false
+  includeAll: false
+  allowCustomValue: false
+  description: Its role mappers' names as a regex, for the LDAP sync log

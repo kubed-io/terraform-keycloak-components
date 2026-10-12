@@ -1,0 +1,48 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: ldap-federation-mappers
+spec:
+  id: 20
+  title: ''
+  description: |
+    How LDAP entries become Keycloak users, attributes, groups and roles: one mapper at a time. Pick
+    one on the left for its settings.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: ../../../shared/from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: <div class="kd"><kd-split key="keycloak-ldap-mapper" empty="No mappers."></kd-split></div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: mappers.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

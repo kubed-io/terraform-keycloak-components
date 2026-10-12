@@ -1,0 +1,70 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: realm-settings
+spec:
+  id: 21
+  title: ''
+  description: |
+    The realm the way Keycloak's realm settings have it, on one page: who it is and how people log
+    in; then sections that fold - the client scopes new clients get (pick one on the left), token
+    and session lifespans, its mail server, security (the password policy in words, brute-force
+    detection, OTP, headers, required actions), the user profile (pick an attribute: who sees it,
+    who edits it, how it is validated), events and client policies. An unset value shows the default
+    Keycloak uses.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: ../../../shared/from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd">
+          <div class="cols">
+          <kd-card id="general"><kd-sheet id="general-sheet"></kd-sheet></kd-card>
+          <kd-card id="login"><kd-sheet id="login-sheet"></kd-sheet></kd-card>
+          </div>
+          <kd-accordion key="keycloak-realm-settings" style="margin-top: 16px">
+          <section id="sec-scopes" label="Default client scopes"><kd-split id="scopes" key="keycloak-realm-scope" empty="The realm adds no client scopes to new clients."></kd-split></section>
+          <section id="sec-tokens" label="Tokens and sessions"><kd-sheet id="tokens" layout="grid"></kd-sheet></section>
+          <section id="sec-email" label="Email"><kd-sheet id="smtp" layout="grid"></kd-sheet></section>
+          <section id="sec-security" label="Security"><kd-status id="password"></kd-status><div class="cols" style="margin-top: 12px">
+          <kd-card id="brute"><kd-sheet id="brute-sheet"></kd-sheet></kd-card>
+          <kd-card id="otp"><kd-sheet id="otp-sheet"></kd-sheet></kd-card>
+          </div><kd-table id="headers" style="margin-top: 12px"></kd-table><kd-table id="actions" style="margin-top: 12px"></kd-table></section>
+          <section id="sec-profile" label="User profile"><kd-split id="attributes" key="keycloak-realm-attribute" empty="Keycloak's default user profile."></kd-split><kd-table id="groups" style="margin-top: 12px"></kd-table></section>
+          <section id="sec-events" label="Events"><kd-sheet id="events" layout="grid"></kd-sheet></section>
+          <section id="sec-clientpolicies" label="Client policies"><kd-table id="cprofiles"></kd-table><kd-table id="cpolicies" style="margin-top: 12px"></kd-table><kd-table id="registration" style="margin-top: 12px"></kd-table></section>
+          </kd-accordion>
+          </div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: settings.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

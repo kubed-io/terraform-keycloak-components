@@ -1,0 +1,148 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: realm-resources
+spec:
+  id: 20
+  title: ''
+  description: |
+    Everything in this realm that a keycloak.kubed.io object manages: its clients, client scopes,
+    LDAP federation and workflows, each with its state. Every row opens its own view.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclients
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: B
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclientscopes
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: C
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/ldapfederations
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: D
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/workflows
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd">
+          <h3>Clients</h3><kd-table id="clients"></kd-table>
+          <div class="cols">
+          <div><h3>Client scopes</h3><kd-table id="scopes"></kd-table></div>
+          <div><h3>User federation</h3><kd-table id="federations"></kd-table><h3>Workflows</h3><kd-table id="workflows"></kd-table></div>
+          </div>
+          </div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: resources.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

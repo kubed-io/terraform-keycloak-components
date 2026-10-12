@@ -1,0 +1,24 @@
+# Every keycloak dashboard embeds these. `assets` is @kubed.io/cdn on jsDelivr, pinned: move every
+# dashboard to a new version together. `back` is the page that linked here, as the k8s views keep it.
+kind: ConstantVariable
+spec:
+  name: assets
+  query: https://cdn.jsdelivr.net/npm/@kubed.io/cdn@0.0.8/dist
+  current:
+    text: https://cdn.jsdelivr.net/npm/@kubed.io/cdn@0.0.8/dist
+    value: https://cdn.jsdelivr.net/npm/@kubed.io/cdn@0.0.8/dist
+  hide: hideVariable
+  skipUrlSync: true
+  description: Base URL of the @kubed.io/cdn assets the panels load
+---
+kind: TextVariable
+spec:
+  name: back
+  current:
+    text: ''
+    value: ''
+  query: ''
+  label: Back to
+  hide: hideVariable
+  skipUrlSync: false
+  description: 'Dashboard to return to: a uid, optionally with a query string. Set by the page that linked here.'

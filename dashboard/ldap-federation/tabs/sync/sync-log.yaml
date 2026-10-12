@@ -1,0 +1,43 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: ldap-federation-sync-log
+spec:
+  id: 22
+  title: LDAP log
+  description: Keycloak's log lines about LDAP and federation, newest first.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: loki
+            version: v0
+            datasource:
+              name: loki
+            spec:
+              expr: '{namespace="auth", instance="auth/keycloak-0:keycloak"} |~ "(?i)ldap|federation|Syncing data
+                for mapper"'
+              queryType: range
+              legendFormat: ''
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: logs
+    spec:
+      options:
+        showTime: true
+        wrapLogMessage: true
+        sortOrder: Descending
+        enableLogDetails: true
+        dedupStrategy: none
+      fieldConfig:
+        defaults: {}
+        overrides: []

@@ -1,0 +1,67 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: client-settings
+spec:
+  id: 20
+  title: ''
+  description: |
+    The client the way Keycloak's settings page has it: who it is, its root and home URLs and every
+    redirect, post-logout and origin URI; then its client scopes (pick one on the left: Keycloak's
+    built-in ones say which claims they add, managed ones open their own view), login and logout,
+    and token and session lifespans. An unset value shows the default Keycloak uses.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: ../../../shared/from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd">
+          <div class="cols">
+          <kd-card id="general"><kd-sheet id="general-sheet"></kd-sheet></kd-card>
+          <kd-card id="access"><kd-sheet id="urls" layout="grid"></kd-sheet><kd-table id="uris" empty="No redirect URIs: nothing can log in through a browser."></kd-table></kd-card>
+          </div>
+          <kd-accordion key="keycloak-client-settings" style="margin-top: 16px">
+          <section id="sec-scopes" label="Client scopes"><kd-split id="scopes" key="keycloak-client-scope" empty="No client scopes assigned."></kd-split></section>
+          <section id="sec-login" label="Login and logout"><div class="cols">
+          <kd-card id="login"><kd-sheet id="login-sheet"></kd-sheet></kd-card>
+          <kd-card id="logout"><kd-sheet id="logout-sheet"></kd-sheet></kd-card>
+          </div></section>
+          <section id="sec-sessions" label="Tokens and sessions"><div class="cols">
+          <kd-card id="tokens"><kd-sheet id="tokens-sheet"></kd-sheet></kd-card>
+          <kd-card id="compat"><kd-sheet id="compat-sheet"></kd-sheet></kd-card>
+          </div><kd-table id="extra" style="margin-top: 12px"></kd-table></section>
+          </kd-accordion>
+          </div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: settings.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

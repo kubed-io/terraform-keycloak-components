@@ -1,0 +1,131 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: keycloak-header
+spec:
+  id: 1
+  title: ''
+  description: |
+    The object, read live from the Kubernetes API as grafana-sa: its kind, name, state and the realm
+    it belongs to. This panel also fetches the composed OpenTofu Workspace, the client scopes and
+    both objects' events from Loki, once; the panels below read them from here instead of asking the
+    API again.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/${plural}?fieldSelector=metadata.name%3D${name}
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: B
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/opentofu.upbound.io/v1beta1/workspaces?fieldSelector=metadata.name%3D${name}.${plural}.keycloak
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: C
+          hidden: false
+          query:
+            kind: DataQuery
+            group: yesoreyeram-infinity-datasource
+            version: v0
+            datasource:
+              name: kubernetes
+            spec:
+              type: json
+              source: url
+              parser: jq-backend
+              format: table
+              url: https://kubernetes.default.svc/apis/keycloak.kubed.io/v1alpha1/openidclientscopes
+              url_options:
+                method: GET
+                headers:
+                - key: Accept
+                  value: application/json
+              root_selector: '[.items[] | {doc: tojson}]'
+              columns: []
+              filters: []
+      - kind: PanelQuery
+        spec:
+          refId: D
+          hidden: false
+          query:
+            kind: DataQuery
+            group: loki
+            version: v0
+            datasource:
+              name: loki
+            spec:
+              expr: '{job="integrations/kubernetes/eventhandler", kind=~"${kind}|Workspace", name=~"${name}|${name}.${plural}.keycloak"}'
+              queryType: range
+              legendFormat: ''
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles: []
+        status: ''
+        wrap: false
+        helpers: ''
+        content: <kd-bar></kd-bar>
+        defaultContent: <div class="kd"><div class="none">Pick one above. If the list is empty, none exist yet.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: header.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

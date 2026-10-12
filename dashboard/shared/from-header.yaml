@@ -1,0 +1,15 @@
+# The header panel's results - the object, its Workspace and its events - for panels that show
+# them without fetching again. Embedded as a panel's only query.
+kind: PanelQuery
+spec:
+  refId: A
+  hidden: false
+  query:
+    kind: DataQuery
+    group: datasource
+    version: v0
+    datasource:
+      name: -- Dashboard --
+    spec:
+      panelId: 1
+      withTransforms: false

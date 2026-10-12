@@ -1,0 +1,18 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-realm-dashboard
+# The Realm dashboard: its facts panel, its tabs' panels, and the dashboard that lays them out
+# with the shared header, status and YAML. Its tabs/*.yaml are layouts the dashboard embeds.
+resources:
+- facts.yaml
+- tabs/activity/realm-logins.yaml
+- tabs/activity/realm-tokens.yaml
+- tabs/activity/realm-errors.yaml
+- tabs/activity/realm-bad-passwords.yaml
+- tabs/activity/realm-events.yaml
+- tabs/activity/realm-errors-by-type.yaml
+- tabs/activity/realm-by-client.yaml
+- tabs/resources/resources.yaml
+- tabs/settings/settings.yaml
+- dashboard.yaml

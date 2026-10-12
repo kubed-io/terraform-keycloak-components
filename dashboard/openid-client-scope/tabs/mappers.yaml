@@ -1,0 +1,43 @@
+kind: TabsLayoutTab
+spec:
+  title: Mappers
+  layout:
+    kind: RowsLayout
+    spec:
+      rows:
+      - kind: RowsLayoutRow
+        spec:
+          title: Protocol mappers
+          collapse: false
+          hideHeader: false
+          layout:
+            kind: GridLayout
+            spec:
+              items:
+              - kind: GridLayoutItem
+                spec:
+                  x: 0
+                  y: 0
+                  width: 24
+                  height: 13
+                  element:
+                    kind: ElementReference
+                    name: openid-client-scope-protocol-mappers
+      - kind: RowsLayoutRow
+        spec:
+          title: Roles
+          collapse: false
+          hideHeader: false
+          layout:
+            kind: GridLayout
+            spec:
+              items:
+              - kind: GridLayoutItem
+                spec:
+                  x: 0
+                  y: 0
+                  width: 24
+                  height: 7
+                  element:
+                    kind: ElementReference
+                    name: openid-client-scope-roles

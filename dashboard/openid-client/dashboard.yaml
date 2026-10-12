@@ -1,0 +1,140 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Dashboard
+metadata:
+  name: keycloak-openid-client
+  labels:
+    grafana.kubed.io/dashboard: keycloak-components
+spec:
+  title: Keycloak client
+  description: |
+    One OpenidClient (keycloak.kubed.io/v1alpha1), read live from the Kubernetes API as grafana-sa:
+    what it declares, whether Crossplane and its OpenTofu Workspace applied it, and how it is used -
+    logins, tokens and errors for its client_id from Keycloak's user-event metrics, and its LDAP
+    role syncs from Keycloak's log.
+  tags:
+  - keycloak
+  - crossplane
+  - openidclient
+  cursorSync: Crosshair
+  editable: true
+  liveNow: false
+  preload: false
+  links:
+  - title: Keycloak
+    type: link
+    icon: dashboard
+    tooltip: The Keycloak server
+    url: /d/keycloak
+    tags: []
+    asDropdown: false
+    targetBlank: false
+    includeVars: false
+    keepTime: true
+  - title: Keycloak resources
+    type: dashboards
+    icon: external link
+    tooltip: ''
+    url: ''
+    tags:
+    - keycloak
+    - crossplane
+    asDropdown: true
+    targetBlank: false
+    includeVars: false
+    keepTime: true
+  timeSettings:
+    timezone: browser
+    from: now-7d
+    to: now
+    autoRefresh: ''
+    hideTimepicker: false
+    fiscalYearStartMonth: 0
+  variables:
+  - kind: Embed
+    spec:
+      file: variables.yaml
+  - kind: Embed
+    spec:
+      file: ../shared/variables.yaml
+  layout:
+    kind: RowsLayout
+    spec:
+      rows:
+      - kind: RowsLayoutRow
+        spec:
+          title: ''
+          collapse: false
+          hideHeader: true
+          layout:
+            kind: GridLayout
+            spec:
+              items:
+              - kind: GridLayoutItem
+                spec:
+                  x: 0
+                  y: 0
+                  width: 24
+                  height: 3
+                  element:
+                    kind: ElementReference
+                    name: keycloak-header
+      - kind: RowsLayoutRow
+        spec:
+          title: Summary
+          collapse: false
+          hideHeader: false
+          layout:
+            kind: GridLayout
+            spec:
+              items:
+              - kind: GridLayoutItem
+                spec:
+                  x: 0
+                  y: 0
+                  width: 9
+                  height: 9
+                  element:
+                    kind: ElementReference
+                    name: openid-client-facts
+              - kind: GridLayoutItem
+                spec:
+                  x: 9
+                  y: 0
+                  width: 15
+                  height: 9
+                  element:
+                    kind: ElementReference
+                    name: keycloak-status
+              - kind: GridLayoutItem
+                spec:
+                  x: 0
+                  y: 9
+                  width: 24
+                  height: 7
+                  element:
+                    kind: ElementReference
+                    name: keycloak-events
+      - kind: RowsLayoutRow
+        spec:
+          title: ''
+          collapse: false
+          hideHeader: true
+          layout:
+            kind: TabsLayout
+            spec:
+              tabs:
+              - kind: Embed
+                spec:
+                  file: tabs/activity.yaml
+              - kind: Embed
+                spec:
+                  file: tabs/settings.yaml
+              - kind: Embed
+                spec:
+                  file: tabs/mappers.yaml
+              - kind: Embed
+                spec:
+                  file: tabs/authentication.yaml
+              - kind: Embed
+                spec:
+                  file: ../shared/yaml-tab.yaml

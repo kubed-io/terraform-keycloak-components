@@ -1,0 +1,67 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: realm-tokens
+spec:
+  id: 11
+  title: Tokens issued
+  description: Codes exchanged, refreshes, client-credential logins and token exchanges in this realm.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: prometheus
+            version: v0
+            datasource:
+              name: prometheus
+            spec:
+              expr: sum(((increase(keycloak_user_events_total{job="keycloak-service", realm="${name}", event=~"code_to_token|refresh_token|client_login|token_exchange",
+                error=""}[$__range]) + (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                event=~"code_to_token|refresh_token|client_login|token_exchange", error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service",
+                realm="${name}", event=~"code_to_token|refresh_token|client_login|token_exchange", error=""} offset
+                $__range)) or increase(keycloak_user_events_total{job="keycloak-service", realm="${name}", event=~"code_to_token|refresh_token|client_login|token_exchange",
+                error=""}[$__range]) or (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                event=~"code_to_token|refresh_token|client_login|token_exchange", error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service",
+                realm="${name}", event=~"code_to_token|refresh_token|client_login|token_exchange", error=""} offset
+                $__range))) or vector(0)
+              legendFormat: ''
+              range: false
+              instant: true
+              format: table
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: stat
+    spec:
+      options:
+        reduceOptions:
+          calcs:
+          - lastNotNull
+          fields: ''
+          values: false
+        colorMode: value
+        graphMode: none
+        textMode: value
+        justifyMode: center
+        orientation: auto
+      fieldConfig:
+        defaults:
+          unit: short
+          decimals: 0
+          noValue: '0'
+          color:
+            mode: thresholds
+          thresholds:
+            mode: absolute
+            steps:
+            - color: text
+              value: null
+        overrides: []

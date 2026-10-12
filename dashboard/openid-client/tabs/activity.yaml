@@ -1,0 +1,70 @@
+kind: TabsLayoutTab
+spec:
+  title: Activity
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+      - kind: GridLayoutItem
+        spec:
+          x: 0
+          y: 0
+          width: 6
+          height: 4
+          element:
+            kind: ElementReference
+            name: client-logins
+      - kind: GridLayoutItem
+        spec:
+          x: 6
+          y: 0
+          width: 6
+          height: 4
+          element:
+            kind: ElementReference
+            name: client-tokens
+      - kind: GridLayoutItem
+        spec:
+          x: 12
+          y: 0
+          width: 6
+          height: 4
+          element:
+            kind: ElementReference
+            name: client-logouts
+      - kind: GridLayoutItem
+        spec:
+          x: 18
+          y: 0
+          width: 6
+          height: 4
+          element:
+            kind: ElementReference
+            name: client-errors
+      - kind: GridLayoutItem
+        spec:
+          x: 0
+          y: 4
+          width: 12
+          height: 9
+          element:
+            kind: ElementReference
+            name: client-events
+      - kind: GridLayoutItem
+        spec:
+          x: 12
+          y: 4
+          width: 12
+          height: 9
+          element:
+            kind: ElementReference
+            name: client-errors-by-type
+      - kind: GridLayoutItem
+        spec:
+          x: 0
+          y: 13
+          width: 24
+          height: 7
+          element:
+            kind: ElementReference
+            name: client-role-syncs

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-openid-client-scope-dashboard
+# The OpenidClientScope dashboard: its facts panel, its tabs' panels, and the dashboard that lays them out
+# with the shared header, status and YAML. Its tabs/*.yaml are layouts the dashboard embeds.
+resources:
+- facts.yaml
+- tabs/usedby/usedby.yaml
+- tabs/mappers/protocol-mappers.yaml
+- tabs/mappers/roles.yaml
+- dashboard.yaml

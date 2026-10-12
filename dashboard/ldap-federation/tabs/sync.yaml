@@ -1,0 +1,25 @@
+kind: TabsLayoutTab
+spec:
+  title: Sync
+  layout:
+    kind: GridLayout
+    spec:
+      items:
+      - kind: GridLayoutItem
+        spec:
+          x: 0
+          y: 0
+          width: 24
+          height: 9
+          element:
+            kind: ElementReference
+            name: ldap-federation-role-syncs
+      - kind: GridLayoutItem
+        spec:
+          x: 0
+          y: 9
+          width: 24
+          height: 12
+          element:
+            kind: ElementReference
+            name: ldap-federation-sync-log

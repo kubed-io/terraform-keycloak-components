@@ -1,0 +1,59 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: realm-events
+spec:
+  id: 14
+  title: Events by type
+  description: Every successful user event in this realm, by type.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: prometheus
+            version: v0
+            datasource:
+              name: prometheus
+            spec:
+              expr: sum by (event) (((increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__interval]) + (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__interval]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""} offset $__interval)) or increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__interval]) or (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__interval]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""} offset $__interval)))
+              legendFormat: '{{event}}'
+              range: true
+              instant: false
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: timeseries
+    spec:
+      options:
+        legend:
+          displayMode: list
+          placement: bottom
+          showLegend: true
+        tooltip:
+          mode: multi
+          sort: desc
+      fieldConfig:
+        defaults:
+          unit: short
+          decimals: 0
+          custom:
+            drawStyle: bars
+            fillOpacity: 80
+            stacking:
+              mode: normal
+            lineWidth: 1
+        overrides: []

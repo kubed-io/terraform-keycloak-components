@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-dashboards-shared
+# The panels every keycloak dashboard names: the header that fetches the object, the status and
+# events in its summary, and the YAML tab. Plain grafana.krm.kubed.io data; each dashboard embeds its own copy.
+resources:
+- header.yaml
+- status.yaml
+- events.yaml
+- yaml.yaml

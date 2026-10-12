@@ -1,0 +1,46 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: keycloak-yaml
+spec:
+  id: 9
+  title: ''
+  description: The object as the Kubernetes API returns it, without managedFields and the last-applied copy.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: <div class="kd"><kd-data fold="0"></kd-data></div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: yaml.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; } .dt-row { padding: 4px 12px 24px; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

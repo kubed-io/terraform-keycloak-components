@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+metadata:
+  name: keycloak-workflow-dashboard
+# The Workflow dashboard: its facts panel, its tabs' panels, and the dashboard that lays them out
+# with the shared header, status and YAML. Its tabs/*.yaml are layouts the dashboard embeds.
+resources:
+- facts.yaml
+- tabs/steps/steps.yaml
+- dashboard.yaml

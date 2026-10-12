@@ -1,0 +1,52 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: ldap-federation-settings
+spec:
+  id: 23
+  title: ''
+  description: |
+    How the realm reaches the directory and keeps users in step with it: the connection, its bind
+    Secret, and the import and sync schedule. An unset value shows the default Keycloak uses.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: Embed
+        spec:
+          file: ../../../shared/from-header.yaml
+      transformations: []
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: marcusolsson-dynamictext-panel
+    spec:
+      options:
+        renderMode: data
+        contentPartials: []
+        editor:
+          format: auto
+          language: html
+        editors: []
+        externalStyles:
+        - id: kd
+          url: ${assets}/kd.css
+        status: ''
+        wrap: false
+        helpers: ''
+        content: |-
+          <div class="kd"><div class="cols">
+          <kd-card id="connection"><kd-sheet id="connection-sheet"></kd-sheet></kd-card>
+          <kd-card id="sync"><kd-sheet id="sync-sheet"></kd-sheet></kd-card>
+          </div></div>
+        defaultContent: <div class="kd"><div class="none">Nothing to show.</div></div>
+        afterRender:
+          kind: Embed
+          spec:
+            file: settings.afterRender.js
+        styles: '.dt-row { height: 100%; padding: 4px 0 0; overflow: auto; }'
+      fieldConfig:
+        defaults: {}
+        overrides: []
+  transparent: true

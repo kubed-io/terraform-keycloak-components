@@ -1,0 +1,114 @@
+apiVersion: grafana.krm.kubed.io/v1alpha1
+kind: Panel
+metadata:
+  name: realm-by-client
+spec:
+  id: 16
+  title: By client
+  description: |
+    Events and errors per client in the time range. A client opens its own view; account-console and
+    security-admin-console are Keycloak's built-in ones.
+  links: []
+  data:
+    kind: QueryGroup
+    spec:
+      queries:
+      - kind: PanelQuery
+        spec:
+          refId: A
+          hidden: false
+          query:
+            kind: DataQuery
+            group: prometheus
+            version: v0
+            datasource:
+              name: prometheus
+            spec:
+              expr: sum by (client_id) (((increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__range]) + (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""} offset $__range)) or increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__range]) or (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error=""} offset $__range)))
+              legendFormat: ''
+              range: false
+              instant: true
+              format: table
+      - kind: PanelQuery
+        spec:
+          refId: B
+          hidden: false
+          query:
+            kind: DataQuery
+            group: prometheus
+            version: v0
+            datasource:
+              name: prometheus
+            spec:
+              expr: sum by (client_id) (((increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""}[$__range]) + (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""} offset $__range)) or increase(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""}[$__range]) or (min_over_time(keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""}[$__range]) unless keycloak_user_events_total{job="keycloak-service", realm="${name}",
+                error!=""} offset $__range)))
+              legendFormat: ''
+              range: false
+              instant: true
+              format: table
+      transformations:
+      - kind: merge
+        spec:
+          id: merge
+          options: {}
+      - kind: organize
+        spec:
+          id: organize
+          options:
+            excludeByName:
+              Time: true
+            renameByName:
+              'Value #A': Events
+              'Value #B': Errors
+      queryOptions: {}
+  vizConfig:
+    kind: VizConfig
+    group: table
+    spec:
+      options:
+        showHeader: true
+        cellHeight: sm
+        sortBy:
+        - displayName: Events
+          desc: true
+      fieldConfig:
+        defaults:
+          unit: short
+          decimals: 0
+        overrides:
+        - matcher:
+            id: byName
+            options: client_id
+          properties:
+          - id: displayName
+            value: Client
+          - id: links
+            value:
+            - title: Open the client
+              url: /d/keycloak-openid-client?var-name=${__value.raw}&var-back=keycloak-realm%3Fvar-name%3D${name}&${__url_time_range}
+        - matcher:
+            id: byName
+            options: Errors
+          properties:
+          - id: custom.cellOptions
+            value:
+              type: color-text
+          - id: thresholds
+            value:
+              mode: absolute
+              steps:
+              - color: text
+                value: null
+              - color: red
+                value: 1
