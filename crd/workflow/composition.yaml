@@ -29,6 +29,8 @@ spec:
               name: keycloak
             forProvider:
               source: Remote
+              # the module is pulled once per ?ref, not on every reconcile
+              remotePullPolicy: IfNotPresent
               module: github.com/kubed-io/terraform-keycloak-components//modules/workflow?ref=main
               # filled out by the patch-and-transform function
               varmap: {}
