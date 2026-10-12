@@ -16,7 +16,19 @@ resource "keycloak_realm_user_profile" "this" {
       enabled_when_scope  = attribute.value.enabledWhenScope
       required_for_roles  = attribute.value.requiredForRoles
       required_for_scopes = attribute.value.requiredForScopes
-      annotations         = attribute.value.annotations
+      # The provider reads a "{...}" annotation back as compact JSON with sorted keys, so it
+      # is sent that way; anything else diffs on every plan and re-applies forever.
+      annotations = (
+        attribute.value.annotations == null
+        ? null
+        : {
+          for k, v in attribute.value.annotations : k => (
+            startswith(v, "{") && can(jsondecode(v))
+            ? jsonencode(jsondecode(v))
+            : v
+          )
+        }
+      )
 
       dynamic "permissions" {
         for_each = (
@@ -46,7 +58,18 @@ resource "keycloak_realm_user_profile" "this" {
       name                = group.value.name
       display_header      = group.value.displayHeader
       display_description = group.value.displayDescription
-      annotations         = group.value.annotations
+      # Normalized like the attribute annotations above.
+      annotations = (
+        group.value.annotations == null
+        ? null
+        : {
+          for k, v in group.value.annotations : k => (
+            startswith(v, "{") && can(jsondecode(v))
+            ? jsonencode(jsondecode(v))
+            : v
+          )
+        }
+      )
     }
   }
 }

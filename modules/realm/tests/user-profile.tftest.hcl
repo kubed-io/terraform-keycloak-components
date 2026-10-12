@@ -183,3 +183,48 @@ run "attribute_without_permissions" {
     error_message = "Expected no groups when none are given."
   }
 }
+
+# Keycloak hands a JSON-object annotation back with its keys sorted; sending it in any
+# other order is a diff on every plan.
+run "json_annotations_are_sent_sorted_and_compact" {
+  command = plan
+  variables {
+    user_profile = {
+      attributes = [
+        { name = "username" },
+        { name = "email" },
+        {
+          name = "gender"
+          annotations = {
+            inputType         = "select"
+            inputOptionLabels = "{\"male\": \"Male\", \"female\": \"Female\", \"other\": \"Other\"}"
+            notJson           = "{not json"
+          }
+        },
+      ]
+      groups = [
+        { name = "personal", annotations = { labels = "{\"b\":\"B\",\"a\":\"A\"}" } },
+      ]
+    }
+  }
+
+  assert {
+    condition     = keycloak_realm_user_profile.this[0].attribute[2].annotations["inputOptionLabels"] == "{\"female\":\"Female\",\"male\":\"Male\",\"other\":\"Other\"}"
+    error_message = "Expected the JSON annotation re-encoded with sorted keys and no whitespace."
+  }
+
+  assert {
+    condition     = keycloak_realm_user_profile.this[0].attribute[2].annotations["inputType"] == "select"
+    error_message = "Expected a plain annotation passed through untouched."
+  }
+
+  assert {
+    condition     = keycloak_realm_user_profile.this[0].attribute[2].annotations["notJson"] == "{not json"
+    error_message = "Expected a value that only looks like JSON passed through untouched."
+  }
+
+  assert {
+    condition     = one(keycloak_realm_user_profile.this[0].group).annotations["labels"] == "{\"a\":\"A\",\"b\":\"B\"}"
+    error_message = "Expected group JSON annotations normalized too."
+  }
+}
