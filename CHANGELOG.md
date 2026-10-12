@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Grafana dashboards for every `keycloak.kubed.io` kind (Realm, OpenidClient, OpenidClientScope, LdapFederation, Workflow) under `dashboard/`, each showing one object live with its Workspace, conditions, events and Keycloak activity.
+
 ## [0.0.3] - 2026-10-12
 
 ### Fixed
