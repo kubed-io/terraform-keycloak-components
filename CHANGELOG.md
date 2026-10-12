@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.0.3] - 2026-10-12
+
 ### Fixed
 
 - `realm` module: a JSON-object user-profile annotation (e.g. `inputOptionLabels`) no longer re-applies on every reconcile; it is sent the way Keycloak returns it, keys sorted and compact.
